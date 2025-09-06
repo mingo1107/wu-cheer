@@ -12,9 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // 為 API 路由添加 session 中間件
-        $middleware->api(prepend: [
-            \Illuminate\Session\Middleware\StartSession::class,
+        // JWT 認證不需要 session 中間件
+        // 添加 CORS 中間件
+        $middleware->api(append: [
+            \Illuminate\Http\Middleware\HandleCors::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

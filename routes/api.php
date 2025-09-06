@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\UserController;
 
 /*
@@ -17,15 +18,18 @@ use App\Http\Controllers\UserController;
 
 // 公開路由 - 不需要認證
 Route::group([], function () {
-    // 使用者登入
-    Route::post('user/login', [UserController::class, 'login'])->name('api.user.na.login');
+    // 帳戶登入
+    Route::post('account/login', [AccountController::class, 'login'])->name('api.account.login');
 });
 
 // 需要認證的路由
-Route::middleware('auth')->group(function () {
-    // 使用者登出
-    Route::post('user/logout', [UserController::class, 'logout'])->name('api.user.na.logout');
-    
-    // 取得目前使用者資訊
-    Route::get('user/me', [UserController::class, 'me'])->name('api.user.na.me');
+Route::middleware('auth:api')->group(function () {
+    // 帳戶登出
+    Route::post('account/logout', [AccountController::class, 'logout'])->name('api.account.logout');
+
+    // 取得目前帳戶資訊
+    Route::get('account/me', [AccountController::class, 'me'])->name('api.account.me');
+
+    // 使用者管理 CRUD
+    Route::apiResource('users', UserController::class);
 });

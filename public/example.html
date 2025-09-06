@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>API 測試範例</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/base.js"></script>
+</head>
+<body>
+    <h1>API 測試範例</h1>
+    
+    <div id="app">
+        <h2>使用者登入測試</h2>
+        <form id="loginForm">
+            <div>
+                <label>Email:</label>
+                <input type="email" id="email" value="test@example.com" required>
+            </div>
+            <div>
+                <label>Password:</label>
+                <input type="password" id="password" value="password123" required>
+            </div>
+            <button type="submit">登入</button>
+        </form>
+
+        <h2>使用者資訊</h2>
+        <button id="getUserInfo">取得使用者資訊</button>
+        <button id="logout">登出</button>
+
+        <h2>回應結果</h2>
+        <pre id="result"></pre>
+    </div>
+
+    <script>
+        // 顯示結果的函數
+        function showResult(data) {
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+        }
+
+        // 登入表單處理
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const result = await api.post('/user/login', {
+                    email: email,
+                    password: password
+                }, function(data) {
+                    console.log('登入成功:', data);
+                    showResult(data);
+                });
+            } catch (error) {
+                console.error('登入失敗:', error);
+            }
+        });
+
+        // 取得使用者資訊
+        document.getElementById('getUserInfo').addEventListener('click', async function() {
+            try {
+                const result = await api.get('/user/me', null, function(data) {
+                    console.log('使用者資訊:', data);
+                    showResult(data);
+                });
+            } catch (error) {
+                console.error('取得使用者資訊失敗:', error);
+            }
+        });
+
+        // 登出
+        document.getElementById('logout').addEventListener('click', async function() {
+            try {
+                const result = await api.post('/user/logout', null, function(data) {
+                    console.log('登出成功:', data);
+                    showResult(data);
+                });
+            } catch (error) {
+                console.error('登出失敗:', error);
+            }
+        });
+
+        // 使用舊版 doAjaxRequest 的範例
+        function testOldMethod() {
+            doAjaxRequest('get', '/user/me', null, function(data) {
+                console.log('使用舊版方法取得使用者資訊:', data);
+                showResult(data);
+            });
+        }
+
+        // 測試舊版方法（5秒後執行）
+        setTimeout(testOldMethod, 5000);
+    </script>
+</body>
+</html>
