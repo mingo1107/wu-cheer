@@ -65,7 +65,7 @@ class AccountService
                 ],
                 'token' => $token,
                 'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60, // 轉換為秒
+                'expires_in' => config('jwt.ttl') * 60, // 轉換為秒
             ];
 
         } catch (Exception $e) {
@@ -115,5 +115,48 @@ class AccountService
                 'email_verified_at' => $user->email_verified_at,
             ]
         ];
+    }
+
+    /**
+     * 修改密碼
+     *
+     * @param User $user
+     * @param array $data
+     * @return array
+     * @throws Exception
+     */
+    public function changePassword(User $user, array $data): array
+    {
+        try {
+            DB::beginTransaction();
+
+            // 驗證使用者是否已登入
+            if (!$user) {
+                throw new Exception('使用者未登入');
+            }
+
+            // 驗證目前密碼
+            if (!$this->userRepository->verifyPassword($user, $data['current_password'])) {
+                throw new Exception('目前密碼錯誤');
+            }
+
+            // 檢查新密碼是否與目前密碼相同
+            if ($this->userRepository->verifyPassword($user, $data['new_password'])) {
+                throw new Exception('新密碼不能與目前密碼相同');
+            }
+
+            // 更新密碼
+            $this->userRepository->updatePassword($user->id, $data['new_password']);
+
+            DB::commit();
+
+            return [
+                'message' => '密碼修改成功'
+            ];
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 }

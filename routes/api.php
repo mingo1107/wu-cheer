@@ -30,6 +30,9 @@ Route::middleware('auth:api')->group(function () {
     // 取得目前帳戶資訊
     Route::get('account/me', [AccountController::class, 'me'])->name('api.account.me');
 
+    // 修改密碼
+    Route::post('account/change-password', [AccountController::class, 'changePassword'])->name('api.account.change-password');
+
     // 使用者管理 CRUD
     Route::apiResource('users', UserController::class);
 });

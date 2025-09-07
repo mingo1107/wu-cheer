@@ -178,4 +178,24 @@ class UserRepository
 
         return $user->delete();
     }
+
+    /**
+     * 更新使用者密碼
+     *
+     * @param int $id
+     * @param string $password
+     * @return bool
+     */
+    public function updatePassword(int $id, string $password): bool
+    {
+        $user = $this->model->find($id);
+        
+        if (!$user) {
+            return false;
+        }
+
+        return $user->update([
+            'password' => bcrypt($password)
+        ]);
+    }
 }
