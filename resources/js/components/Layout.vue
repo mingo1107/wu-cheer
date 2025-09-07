@@ -72,7 +72,7 @@
             </router-link>
             
             <!-- 土單系統下拉選單 -->
-            <div class="relative z-50" @mouseenter="earthSystemMenuOpen = true" @mouseleave="earthSystemMenuOpen = false">
+            <div class="relative z-50" @mouseenter="showEarthSystemMenu" @mouseleave="hideEarthSystemMenu">
               <button class="text-gray-700 hover:text-amber-600 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 flex items-center" :class="{ 'text-amber-600 bg-amber-50': isEarthSystemActive }">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -84,7 +84,7 @@
               </button>
               
               <!-- 下拉選單 -->
-              <div v-if="earthSystemMenuOpen" class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[9999]">
+              <div v-if="earthSystemMenuOpen" class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[9999]" @mouseenter="showEarthSystemMenu" @mouseleave="hideEarthSystemMenu">
                 <router-link
                   to="/case"
                   @click="earthSystemMenuOpen = false"
@@ -363,6 +363,7 @@ const { user, logout, isLoading } = useAuth();
 const mobileMenuOpen = ref(false);
 const userMenuOpen = ref(false);
 const earthSystemMenuOpen = ref(false);
+let earthSystemMenuTimeout = null;
 
 // 計算土單系統是否為活躍狀態
 const isEarthSystemActive = computed(() => {
@@ -387,6 +388,21 @@ const handleChangePassword = () => {
   userMenuOpen.value = false;
   // TODO: 實作修改密碼功能
   alert('修改密碼功能待開發');
+};
+
+// 土單系統選單控制
+const showEarthSystemMenu = () => {
+  if (earthSystemMenuTimeout) {
+    clearTimeout(earthSystemMenuTimeout);
+    earthSystemMenuTimeout = null;
+  }
+  earthSystemMenuOpen.value = true;
+};
+
+const hideEarthSystemMenu = () => {
+  earthSystemMenuTimeout = setTimeout(() => {
+    earthSystemMenuOpen.value = false;
+  }, 150); // 150ms 延遲，讓使用者有時間移動到子選單
 };
 
 // 點擊外部關閉選單
