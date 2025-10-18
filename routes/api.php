@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CleanerController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('customers/active/list', [CustomerController::class, 'active'])->name('api.customers.active');
     Route::get('customers/search', [CustomerController::class, 'search'])->name('api.customers.search');
     Route::get('customers/stats/overview', [CustomerController::class, 'stats'])->name('api.customers.stats');
+
+    //@ cleaner 清運業者 CRUD
+    Route::apiResource('cleaners', CleanerController::class);
 
     //@ announcement 公告欄 CRUD
     Route::apiResource('announcements', AnnouncementController::class);

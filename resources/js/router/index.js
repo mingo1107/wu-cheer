@@ -57,6 +57,15 @@ const routes = [
         }
       },
       {
+        path: 'cleaner',
+        name: 'Cleaner',
+        component: () => import('../pages/Cleaner.vue'),
+        meta: {
+          title: '清運業者管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
         path: 'announcement',
         name: 'Announcement',
         component: () => import('../pages/Announcement.vue'),

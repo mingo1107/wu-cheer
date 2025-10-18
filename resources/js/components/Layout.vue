@@ -37,39 +37,51 @@
               </svg>
               儀表板
             </router-link>
-            
-            <router-link
-              to="/user"
-              class="text-gray-700 hover:text-amber-600 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-200"
-              :class="{ 'text-amber-600 bg-amber-50': $route.path === '/user' }"
-            >
-              <svg class="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-              </svg>
-              使用者管理
-            </router-link>
-            
-            <router-link
-              to="/customer"
-              class="text-gray-700 hover:text-amber-600 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-200"
-              :class="{ 'text-amber-600 bg-amber-50': $route.path === '/customer' }"
-            >
-              <svg class="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-              </svg>
-              客戶資料
-            </router-link>
-            
-            <router-link
-              to="/announcement"
-              class="text-gray-700 hover:text-amber-600 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-200"
-              :class="{ 'text-amber-600 bg-amber-50': $route.path === '/announcement' }"
-            >
-              <svg class="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-              </svg>
-              公告欄
-            </router-link>
+
+            <!-- 後台管理 下拉選單 -->
+            <div class="relative z-50" @mouseenter="showAdminMenu" @mouseleave="hideAdminMenu">
+              <button class="text-gray-700 hover:text-amber-600 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 flex items-center" :class="{ 'text-amber-600 bg-amber-50': isAdminActive }">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+                後台管理
+                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+              <div v-if="adminMenuOpen" class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1" @mouseenter="showAdminMenu" @mouseleave="hideAdminMenu">
+                <router-link to="/user" @click="adminMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                  <i class="fas fa-user mr-3"></i> 使用者管理
+                </router-link>
+                <div class="flex items-center px-4 py-2 text-sm text-gray-400 cursor-not-allowed">
+                  <i class="fas fa-clipboard-list mr-3"></i> 使用者操作紀錄（開發中）
+                </div>
+              </div>
+            </div>
+
+            <!-- 資料設定 下拉選單 -->
+            <div class="relative z-50" @mouseenter="showDataMenu" @mouseleave="hideDataMenu">
+              <button class="text-gray-700 hover:text-amber-600 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 flex items-center" :class="{ 'text-amber-600 bg-amber-50': isDataActive }">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 3h14a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+                </svg>
+                資料設定
+                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+              <div v-if="dataMenuOpen" class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1" @mouseenter="showDataMenu" @mouseleave="hideDataMenu">
+                <router-link to="/customer" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                  <i class="fas fa-building mr-3"></i> 客戶管理
+                </router-link>
+                <router-link to="/cleaner" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                  <i class="fas fa-truck mr-3"></i> 清運業者管理
+                </router-link>
+                <router-link to="/announcement" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                  <i class="fas fa-bullhorn mr-3"></i> 公告管理
+                </router-link>
+              </div>
+            </div>
             
             <!-- 土單系統下拉選單 -->
             <div class="relative z-50" @mouseenter="showEarthSystemMenu" @mouseleave="hideEarthSystemMenu">
@@ -258,6 +270,25 @@
               公告欄
             </router-link>
 
+            <!-- 後台管理 手機版 -->
+            <div class="border-t border-gray-200 my-2"></div>
+            <div class="text-sm font-medium text-gray-500 px-3 py-2">後台管理</div>
+            <router-link to="/user" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/user' }">
+              使用者管理
+            </router-link>
+            <div class="px-6 py-2 text-base text-gray-400">使用者操作紀錄（開發中）</div>
+
+            <!-- 資料設定 手機版 -->
+            <div class="border-t border-gray-200 my-2"></div>
+            <div class="text-sm font-medium text-gray-500 px-3 py-2">資料設定</div>
+            <router-link to="/customer" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/customer' }">
+              客戶管理
+            </router-link>
+            <div class="px-6 py-2 text-base text-gray-400">清運業者管理（開發中）</div>
+            <router-link to="/announcement" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/announcement' }">
+              公告管理
+            </router-link>
+
             <!-- 土單系統手機版 -->
             <div class="border-t border-gray-200 my-2"></div>
             <div class="text-sm font-medium text-gray-500 px-3 py-2">土單系統</div>
@@ -362,13 +393,27 @@ const { user, logout, isLoading } = useAuth();
 // 響應式資料
 const mobileMenuOpen = ref(false);
 const userMenuOpen = ref(false);
+const adminMenuOpen = ref(false);
+const dataMenuOpen = ref(false);
 const earthSystemMenuOpen = ref(false);
+let adminMenuTimeout = null;
+let dataMenuTimeout = null;
 let earthSystemMenuTimeout = null;
 
 // 計算土單系統是否為活躍狀態
 const isEarthSystemActive = computed(() => {
   const earthSystemPaths = ['/case', '/earth-data', '/earth-recycle', '/earth-statistics'];
   return earthSystemPaths.includes(router.currentRoute.value.path);
+});
+
+const isAdminActive = computed(() => {
+  const adminPaths = ['/user', '/user-logs'];
+  return adminPaths.includes(router.currentRoute.value.path);
+});
+
+const isDataActive = computed(() => {
+  const dataPaths = ['/customer', '/cleaner', '/announcement'];
+  return dataPaths.includes(router.currentRoute.value.path);
 });
 
 // 方法
@@ -391,6 +436,22 @@ const handleChangePassword = () => {
 };
 
 // 土單系統選單控制
+const showAdminMenu = () => {
+  if (adminMenuTimeout) { clearTimeout(adminMenuTimeout); adminMenuTimeout = null; }
+  adminMenuOpen.value = true;
+};
+const hideAdminMenu = () => {
+  adminMenuTimeout = setTimeout(() => { adminMenuOpen.value = false; }, 150);
+};
+
+const showDataMenu = () => {
+  if (dataMenuTimeout) { clearTimeout(dataMenuTimeout); dataMenuTimeout = null; }
+  dataMenuOpen.value = true;
+};
+const hideDataMenu = () => {
+  dataMenuTimeout = setTimeout(() => { dataMenuOpen.value = false; }, 150);
+};
+
 const showEarthSystemMenu = () => {
   if (earthSystemMenuTimeout) {
     clearTimeout(earthSystemMenuTimeout);
