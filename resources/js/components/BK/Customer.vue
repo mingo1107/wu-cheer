@@ -79,7 +79,7 @@
                   class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="created_at">建立時間</option>
-                  <option value="company_name">公司名稱</option>
+                  <option value="customer_name">公司名稱</option>
                   <option value="contact_person">聯絡人</option>
                   <option value="updated_at">更新時間</option>
                 </select>
@@ -127,7 +127,7 @@
                   </tr>
                   <tr v-else v-for="customer in customers" :key="customer.id" class="hover:bg-gray-50 transition-colors duration-200">
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-medium text-gray-900">{{ customer.company_name }}</div>
+                      <div class="text-sm font-medium text-gray-900">{{ customer.customer_name }}</div>
                       <div v-if="customer.address" class="text-sm text-gray-500 truncate max-w-xs">{{ customer.address }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ customer.contact_person }}</td>
@@ -248,13 +248,13 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">公司名稱 *</label>
                 <input
-                  v-model="form.company_name"
+                  v-model="form.customer_name"
                   type="text"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                  :class="{ 'border-red-500': errors.company_name }"
+                  :class="{ 'border-red-500': errors.customer_name }"
                 />
-                <p v-if="errors.company_name" class="text-red-500 text-xs mt-1">{{ errors.company_name }}</p>
+                <p v-if="errors.customer_name" class="text-red-500 text-xs mt-1">{{ errors.customer_name }}</p>
               </div>
               
               <div>
@@ -371,7 +371,7 @@
           <h3 class="text-lg font-medium text-gray-900 mt-4">確認刪除</h3>
           <div class="mt-2 px-7 py-3">
             <p class="text-sm text-gray-500">
-              您確定要刪除客戶「<strong>{{ customerToDelete?.company_name }}</strong>」嗎？此操作無法復原。
+              您確定要刪除客戶「<strong>{{ customerToDelete?.customer_name }}</strong>」嗎？此操作無法復原。
             </p>
           </div>
           <div class="flex justify-center space-x-3 pt-4">
@@ -422,7 +422,7 @@ const customerToDelete = ref(null)
 
 // 表單資料
 const form = reactive({
-  company_name: '',
+  customer_name: '',
   contact_person: '',
   phone: '',
   email: '',
@@ -532,7 +532,7 @@ const openCreateModal = () => {
 const openEditModal = (customer) => {
   isEditing.value = true
   form.id = customer.id
-  form.company_name = customer.company_name
+  form.customer_name = customer.customer_name
   form.contact_person = customer.contact_person
   form.phone = customer.phone || ''
   form.email = customer.email || ''
@@ -562,7 +562,7 @@ const closeDeleteModal = () => {
 
 const resetForm = () => {
   form.id = null
-  form.company_name = ''
+  form.customer_name = ''
   form.contact_person = ''
   form.phone = ''
   form.email = ''

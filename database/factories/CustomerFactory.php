@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -17,14 +16,15 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_name' => $this->faker->company(),
+            'company_id'     => $this->faker->numberBetween(1, 10),
+            'customer_name'  => $this->faker->company(),
             'contact_person' => $this->faker->name(),
-            'phone' => $this->faker->phoneNumber(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'address' => $this->faker->address(),
-            'tax_id' => $this->faker->numerify('########'),
-            'status' => $this->faker->randomElement(['active', 'inactive']),
-            'notes' => $this->faker->optional(0.3)->sentence(),
+            'phone'          => $this->faker->phoneNumber(),
+            'email'          => $this->faker->unique()->safeEmail(),
+            'address'        => $this->faker->address(),
+            'tax_id'         => $this->faker->numerify('########'),
+            'status'         => $this->faker->randomElement(['active', 'inactive']),
+            'notes'          => $this->faker->optional(0.3)->sentence(),
         ];
     }
 }

@@ -1,13 +1,11 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Services\CustomerService;
 use App\Formatters\ApiOutput;
-use Illuminate\Http\Request;
+use App\Services\CustomerService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
@@ -17,7 +15,7 @@ class CustomerController extends Controller
     public function __construct(CustomerService $customerService, ApiOutput $apiOutput)
     {
         $this->customerService = $customerService;
-        $this->apiOutput = $apiOutput;
+        $this->apiOutput       = $apiOutput;
     }
 
     /**
@@ -30,13 +28,13 @@ class CustomerController extends Controller
     {
         try {
             $filters = [
-                'search' => $request->get('search'),
-                'status' => $request->get('status'),
-                'sort_by' => $request->get('sort_by', 'created_at'),
+                'search'     => $request->get('search'),
+                'status'     => $request->get('status'),
+                'sort_by'    => $request->get('sort_by', 'created_at'),
                 'sort_order' => $request->get('sort_order', 'desc'),
             ];
 
-            $perPage = $request->get('per_page', 15);
+            $perPage   = $request->get('per_page', 15);
             $customers = $this->customerService->getCustomers($filters, $perPage);
 
             return response()->json($this->apiOutput->successFormat($customers, '客戶列表取得成功'));
@@ -57,27 +55,27 @@ class CustomerController extends Controller
         try {
             // 驗證請求資料
             $validator = Validator::make($request->all(), [
-                'company_name' => 'required|string|max:255',
+                'customer_name'  => 'required|string|max:255',
                 'contact_person' => 'required|string|max:255',
-                'phone' => 'nullable|string|max:20',
-                'email' => 'nullable|email|max:255',
-                'address' => 'nullable|string|max:500',
-                'tax_id' => 'nullable|string|size:8|regex:/^\d{8}$/',
-                'status' => 'nullable|in:active,inactive',
-                'notes' => 'nullable|string|max:1000',
+                'phone'          => 'nullable|string|max:20',
+                'email'          => 'nullable|email|max:255',
+                'address'        => 'nullable|string|max:500',
+                'tax_id'         => 'nullable|string|size:8|regex:/^\d{8}$/',
+                'status'         => 'nullable|in:active,inactive',
+                'notes'          => 'nullable|string|max:1000',
             ], [
-                'company_name.required' => '公司名稱為必填欄位',
-                'company_name.max' => '公司名稱不能超過255個字元',
+                'customer_name.required'  => '公司名稱為必填欄位',
+                'customer_name.max'       => '公司名稱不能超過255個字元',
                 'contact_person.required' => '聯絡人為必填欄位',
-                'contact_person.max' => '聯絡人不能超過255個字元',
-                'phone.max' => '電話號碼不能超過20個字元',
-                'email.email' => '電子郵件格式不正確',
-                'email.max' => '電子郵件不能超過255個字元',
-                'address.max' => '地址不能超過500個字元',
-                'tax_id.size' => '統一編號必須為8位數字',
-                'tax_id.regex' => '統一編號格式不正確',
-                'status.in' => '狀態值不正確',
-                'notes.max' => '備註不能超過1000個字元',
+                'contact_person.max'      => '聯絡人不能超過255個字元',
+                'phone.max'               => '電話號碼不能超過20個字元',
+                'email.email'             => '電子郵件格式不正確',
+                'email.max'               => '電子郵件不能超過255個字元',
+                'address.max'             => '地址不能超過500個字元',
+                'tax_id.size'             => '統一編號必須為8位數字',
+                'tax_id.regex'            => '統一編號格式不正確',
+                'status.in'               => '狀態值不正確',
+                'notes.max'               => '備註不能超過1000個字元',
             ]);
 
             if ($validator->fails()) {
@@ -86,7 +84,7 @@ class CustomerController extends Controller
 
             // 額外的業務邏輯驗證
             $validationErrors = $this->customerService->validateCustomerData($request->all());
-            if (!empty($validationErrors)) {
+            if (! empty($validationErrors)) {
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validationErrors, 422));
             }
 
@@ -110,7 +108,7 @@ class CustomerController extends Controller
         try {
             $customer = $this->customerService->getCustomer($id);
 
-            if (!$customer) {
+            if (! $customer) {
                 return response()->json($this->apiOutput->failFormat('客戶不存在', [], 404));
             }
 
@@ -133,27 +131,27 @@ class CustomerController extends Controller
         try {
             // 驗證請求資料
             $validator = Validator::make($request->all(), [
-                'company_name' => 'sometimes|required|string|max:255',
+                'customer_name'  => 'sometimes|required|string|max:255',
                 'contact_person' => 'sometimes|required|string|max:255',
-                'phone' => 'nullable|string|max:20',
-                'email' => 'nullable|email|max:255',
-                'address' => 'nullable|string|max:500',
-                'tax_id' => 'nullable|string|size:8|regex:/^\d{8}$/',
-                'status' => 'nullable|in:active,inactive',
-                'notes' => 'nullable|string|max:1000',
+                'phone'          => 'nullable|string|max:20',
+                'email'          => 'nullable|email|max:255',
+                'address'        => 'nullable|string|max:500',
+                'tax_id'         => 'nullable|string|size:8|regex:/^\d{8}$/',
+                'status'         => 'nullable|in:active,inactive',
+                'notes'          => 'nullable|string|max:1000',
             ], [
-                'company_name.required' => '公司名稱為必填欄位',
-                'company_name.max' => '公司名稱不能超過255個字元',
+                'customer_name.required'  => '公司名稱為必填欄位',
+                'customer_name.max'       => '公司名稱不能超過255個字元',
                 'contact_person.required' => '聯絡人為必填欄位',
-                'contact_person.max' => '聯絡人不能超過255個字元',
-                'phone.max' => '電話號碼不能超過20個字元',
-                'email.email' => '電子郵件格式不正確',
-                'email.max' => '電子郵件不能超過255個字元',
-                'address.max' => '地址不能超過500個字元',
-                'tax_id.size' => '統一編號必須為8位數字',
-                'tax_id.regex' => '統一編號格式不正確',
-                'status.in' => '狀態值不正確',
-                'notes.max' => '備註不能超過1000個字元',
+                'contact_person.max'      => '聯絡人不能超過255個字元',
+                'phone.max'               => '電話號碼不能超過20個字元',
+                'email.email'             => '電子郵件格式不正確',
+                'email.max'               => '電子郵件不能超過255個字元',
+                'address.max'             => '地址不能超過500個字元',
+                'tax_id.size'             => '統一編號必須為8位數字',
+                'tax_id.regex'            => '統一編號格式不正確',
+                'status.in'               => '狀態值不正確',
+                'notes.max'               => '備註不能超過1000個字元',
             ]);
 
             if ($validator->fails()) {
@@ -162,7 +160,7 @@ class CustomerController extends Controller
 
             // 額外的業務邏輯驗證
             $validationErrors = $this->customerService->validateCustomerData($request->all(), $id);
-            if (!empty($validationErrors)) {
+            if (! empty($validationErrors)) {
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validationErrors, 422));
             }
 
@@ -186,7 +184,7 @@ class CustomerController extends Controller
         try {
             $deleted = $this->customerService->deleteCustomer($id);
 
-            if (!$deleted) {
+            if (! $deleted) {
                 return response()->json($this->apiOutput->failFormat('客戶不存在或刪除失敗', [], 404));
             }
 
@@ -224,7 +222,7 @@ class CustomerController extends Controller
     {
         try {
             $keyword = $request->get('keyword', '');
-            
+
             if (empty($keyword)) {
                 return response()->json($this->apiOutput->failFormat('搜尋關鍵字不能為空', [], 400));
             }

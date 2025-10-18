@@ -15,7 +15,7 @@ class Customer extends Model
      */
     const FILLABLE = [
         'company_id',
-        'company_name',
+        'customer_name',
         'contact_person',
         'phone',
         'email',
@@ -37,7 +37,7 @@ class Customer extends Model
 
     const ATTRIBUTES = [
         'company_id'     => null,
-        'company_name'   => '',
+        'customer_name'  => '',
         'contact_person' => '',
         'phone'          => '',
         'email'          => '',

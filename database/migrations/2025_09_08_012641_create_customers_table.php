@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('company_id')->index();
-            $table->string('company_name')->comment('公司名稱');
+            $table->string('customer_name')->comment('公司名稱');
             $table->string('contact_person')->comment('聯絡人');
             $table->string('phone')->nullable()->comment('電話');
             $table->string('email')->nullable()->comment('電子郵件');
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['company_id', 'status']);
-            $table->index(['company_id', 'company_name']);
+            $table->index(['company_id', 'customer_name']);
         });
     }
 

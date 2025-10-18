@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\Customer;
@@ -31,7 +30,7 @@ class CustomerService
             return $this->customerRepository->getAllCustomers($filters, $perPage);
         } catch (\Exception $e) {
             Log::error('取得客戶列表失敗', [
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
                 'filters' => $filters,
             ]);
             throw $e;
@@ -50,7 +49,7 @@ class CustomerService
             return $this->customerRepository->getCustomerById($id);
         } catch (\Exception $e) {
             Log::error('取得客戶詳細資料失敗', [
-                'error' => $e->getMessage(),
+                'error'       => $e->getMessage(),
                 'customer_id' => $id,
             ]);
             throw $e;
@@ -67,12 +66,12 @@ class CustomerService
     {
         try {
             // 驗證統一編號是否重複
-            if (!empty($data['tax_id']) && $this->customerRepository->isTaxIdExists($data['tax_id'])) {
+            if (! empty($data['tax_id']) && $this->customerRepository->isTaxIdExists($data['tax_id'])) {
                 throw new \Exception('統一編號已存在');
             }
 
             // 驗證電子郵件是否重複
-            if (!empty($data['email']) && $this->customerRepository->isEmailExists($data['email'])) {
+            if (! empty($data['email']) && $this->customerRepository->isEmailExists($data['email'])) {
                 throw new \Exception('電子郵件已存在');
             }
 
@@ -83,8 +82,8 @@ class CustomerService
             DB::commit();
 
             Log::info('客戶建立成功', [
-                'customer_id' => $customer->id,
-                'company_name' => $customer->company_name,
+                'customer_id'   => $customer->id,
+                'customer_name' => $customer->customer_name,
             ]);
 
             return $customer;
@@ -93,7 +92,7 @@ class CustomerService
             DB::rollBack();
             Log::error('建立客戶失敗', [
                 'error' => $e->getMessage(),
-                'data' => $data,
+                'data'  => $data,
             ]);
             throw $e;
         }
@@ -110,26 +109,26 @@ class CustomerService
     {
         try {
             $customer = $this->customerRepository->getCustomerById($id);
-            
-            if (!$customer) {
+
+            if (! $customer) {
                 throw new \Exception('客戶不存在');
             }
 
             // 驗證統一編號是否重複（排除自己）
-            if (!empty($data['tax_id']) && $this->customerRepository->isTaxIdExists($data['tax_id'], $id)) {
+            if (! empty($data['tax_id']) && $this->customerRepository->isTaxIdExists($data['tax_id'], $id)) {
                 throw new \Exception('統一編號已存在');
             }
 
             // 驗證電子郵件是否重複（排除自己）
-            if (!empty($data['email']) && $this->customerRepository->isEmailExists($data['email'], $id)) {
+            if (! empty($data['email']) && $this->customerRepository->isEmailExists($data['email'], $id)) {
                 throw new \Exception('電子郵件已存在');
             }
 
             DB::beginTransaction();
 
             $updated = $this->customerRepository->updateCustomer($id, $data);
-            
-            if (!$updated) {
+
+            if (! $updated) {
                 throw new \Exception('更新客戶失敗');
             }
 
@@ -139,8 +138,8 @@ class CustomerService
             DB::commit();
 
             Log::info('客戶更新成功', [
-                'customer_id' => $id,
-                'company_name' => $customer->company_name,
+                'customer_id'   => $id,
+                'customer_name' => $customer->customer_name,
             ]);
 
             return $customer;
@@ -148,9 +147,9 @@ class CustomerService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('更新客戶失敗', [
-                'error' => $e->getMessage(),
+                'error'       => $e->getMessage(),
                 'customer_id' => $id,
-                'data' => $data,
+                'data'        => $data,
             ]);
             throw $e;
         }
@@ -166,24 +165,24 @@ class CustomerService
     {
         try {
             $customer = $this->customerRepository->getCustomerById($id);
-            
-            if (!$customer) {
+
+            if (! $customer) {
                 throw new \Exception('客戶不存在');
             }
 
             DB::beginTransaction();
 
             $deleted = $this->customerRepository->deleteCustomer($id);
-            
-            if (!$deleted) {
+
+            if (! $deleted) {
                 throw new \Exception('刪除客戶失敗');
             }
 
             DB::commit();
 
             Log::info('客戶刪除成功', [
-                'customer_id' => $id,
-                'company_name' => $customer->company_name,
+                'customer_id'   => $id,
+                'customer_name' => $customer->customer_name,
             ]);
 
             return true;
@@ -191,7 +190,7 @@ class CustomerService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('刪除客戶失敗', [
-                'error' => $e->getMessage(),
+                'error'       => $e->getMessage(),
                 'customer_id' => $id,
             ]);
             throw $e;
@@ -227,7 +226,7 @@ class CustomerService
             return $this->customerRepository->searchByCompanyName($keyword);
         } catch (\Exception $e) {
             Log::error('搜尋客戶失敗', [
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
                 'keyword' => $keyword,
             ]);
             throw $e;
@@ -263,8 +262,8 @@ class CustomerService
         $errors = [];
 
         // 必填欄位驗證
-        if (empty($data['company_name'])) {
-            $errors['company_name'] = '公司名稱為必填欄位';
+        if (empty($data['customer_name'])) {
+            $errors['customer_name'] = '公司名稱為必填欄位';
         }
 
         if (empty($data['contact_person'])) {
@@ -272,8 +271,8 @@ class CustomerService
         }
 
         // 統一編號驗證
-        if (!empty($data['tax_id'])) {
-            if (!preg_match('/^\d{8}$/', $data['tax_id'])) {
+        if (! empty($data['tax_id'])) {
+            if (! preg_match('/^\d{8}$/', $data['tax_id'])) {
                 $errors['tax_id'] = '統一編號格式不正確（應為8位數字）';
             } elseif ($this->customerRepository->isTaxIdExists($data['tax_id'], $excludeId)) {
                 $errors['tax_id'] = '統一編號已存在';
@@ -281,8 +280,8 @@ class CustomerService
         }
 
         // 電子郵件驗證
-        if (!empty($data['email'])) {
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        if (! empty($data['email'])) {
+            if (! filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $errors['email'] = '電子郵件格式不正確';
             } elseif ($this->customerRepository->isEmailExists($data['email'], $excludeId)) {
                 $errors['email'] = '電子郵件已存在';
@@ -290,18 +289,17 @@ class CustomerService
         }
 
         // 電話號碼驗證
-        if (!empty($data['phone'])) {
-            if (!preg_match('/^[\d\-\+\(\)\s]+$/', $data['phone'])) {
+        if (! empty($data['phone'])) {
+            if (! preg_match('/^[\d\-\+\(\)\s]+$/', $data['phone'])) {
                 $errors['phone'] = '電話號碼格式不正確';
             }
         }
 
         // 狀態驗證
-        if (!empty($data['status']) && !in_array($data['status'], ['active', 'inactive'])) {
+        if (! empty($data['status']) && ! in_array($data['status'], ['active', 'inactive'])) {
             $errors['status'] = '狀態值不正確';
         }
 
         return $errors;
     }
 }
-

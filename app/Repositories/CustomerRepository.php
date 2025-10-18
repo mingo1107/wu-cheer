@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repositories;
 
 use App\Models\Customer;
@@ -32,24 +31,24 @@ class CustomerRepository extends BaseRepository
         }
 
         // 搜尋功能
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('company_name', 'like', "%{$search}%")
-                  ->orWhere('contact_person', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('tax_id', 'like', "%{$search}%");
+                $q->where('customer_name', 'like', "%{$search}%")
+                    ->orWhere('contact_person', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('tax_id', 'like', "%{$search}%");
             });
         }
 
         // 狀態篩選
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
         // 排序
-        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortBy    = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
@@ -95,8 +94,8 @@ class CustomerRepository extends BaseRepository
     public function updateCustomer(int $id, array $data): bool
     {
         $customer = $this->getCustomerById($id);
-        
-        if (!$customer) {
+
+        if (! $customer) {
             return false;
         }
 
@@ -112,8 +111,8 @@ class CustomerRepository extends BaseRepository
     public function deleteCustomer(int $id): bool
     {
         $customer = $this->getCustomerById($id);
-        
-        if (!$customer) {
+
+        if (! $customer) {
             return false;
         }
 
@@ -127,7 +126,7 @@ class CustomerRepository extends BaseRepository
      */
     public function getActiveCustomers(): Collection
     {
-        return $this->model->active()->orderBy('company_name')->get();
+        return $this->model->active()->orderBy('customer_name')->get();
     }
 
     /**
@@ -139,8 +138,8 @@ class CustomerRepository extends BaseRepository
     public function searchByCompanyName(string $companyName): Collection
     {
         return $this->model
-            ->where('company_name', 'like', "%{$companyName}%")
-            ->orderBy('company_name')
+            ->where('customer_name', 'like', "%{$companyName}%")
+            ->orderBy('customer_name')
             ->get();
     }
 
@@ -154,7 +153,7 @@ class CustomerRepository extends BaseRepository
     public function isTaxIdExists(string $taxId, ?int $excludeId = null): bool
     {
         $query = $this->model->where('tax_id', $taxId);
-        
+
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
@@ -172,7 +171,7 @@ class CustomerRepository extends BaseRepository
     public function isEmailExists(string $email, ?int $excludeId = null): bool
     {
         $query = $this->model->where('email', $email);
-        
+
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
@@ -188,10 +187,9 @@ class CustomerRepository extends BaseRepository
     public function getCustomerStats(): array
     {
         return [
-            'total' => $this->model->count(),
-            'active' => $this->model->active()->count(),
+            'total'    => $this->model->count(),
+            'active'   => $this->model->active()->count(),
             'inactive' => $this->model->inactive()->count(),
         ];
     }
 }
-
