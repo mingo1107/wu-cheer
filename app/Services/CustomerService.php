@@ -263,7 +263,7 @@ class CustomerService
 
         // 必填欄位驗證
         if (empty($data['customer_name'])) {
-            $errors['customer_name'] = '公司名稱為必填欄位';
+            $errors['customer_name'] = '客戶名稱為必填欄位';
         }
 
         if (empty($data['contact_person'])) {

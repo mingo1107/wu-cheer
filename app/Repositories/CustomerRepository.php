@@ -130,7 +130,7 @@ class CustomerRepository extends BaseRepository
     }
 
     /**
-     * 根據公司名稱搜尋客戶
+     * 根據客戶名稱搜尋客戶
      *
      * @param string $companyName
      * @return Collection

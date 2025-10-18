@@ -55,7 +55,7 @@
                     v-model="searchQuery"
                     @input="debouncedSearch"
                     type="text"
-                    placeholder="搜尋客戶（公司名稱、聯絡人、電話、電子郵件、統一編號）"
+                    placeholder="搜尋客戶（客戶名稱、聯絡人、電話、電子郵件、統一編號）"
                     class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                   />
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -79,7 +79,7 @@
                   class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="created_at">建立時間</option>
-                  <option value="customer_name">公司名稱</option>
+                  <option value="customer_name">客戶名稱</option>
                   <option value="contact_person">聯絡人</option>
                   <option value="updated_at">更新時間</option>
                 </select>
@@ -101,7 +101,7 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gradient-to-r from-amber-50 to-orange-50">
                   <tr>
-                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">公司名稱</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客戶名稱</th>
                     <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">聯絡人</th>
                     <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">電話</th>
                     <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">電子郵件</th>
@@ -246,7 +246,7 @@
           <form @submit.prevent="submitForm" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">公司名稱 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">客戶名稱 *</label>
                 <input
                   v-model="form.customer_name"
                   type="text"

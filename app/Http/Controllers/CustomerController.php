@@ -64,8 +64,8 @@ class CustomerController extends Controller
                 'status'         => 'nullable|in:active,inactive',
                 'notes'          => 'nullable|string|max:1000',
             ], [
-                'customer_name.required'  => '公司名稱為必填欄位',
-                'customer_name.max'       => '公司名稱不能超過255個字元',
+                'customer_name.required'  => '客戶名稱為必填欄位',
+                'customer_name.max'       => '客戶名稱不能超過255個字元',
                 'contact_person.required' => '聯絡人為必填欄位',
                 'contact_person.max'      => '聯絡人不能超過255個字元',
                 'phone.max'               => '電話號碼不能超過20個字元',
@@ -140,8 +140,8 @@ class CustomerController extends Controller
                 'status'         => 'nullable|in:active,inactive',
                 'notes'          => 'nullable|string|max:1000',
             ], [
-                'customer_name.required'  => '公司名稱為必填欄位',
-                'customer_name.max'       => '公司名稱不能超過255個字元',
+                'customer_name.required'  => '客戶名稱為必填欄位',
+                'customer_name.max'       => '客戶名稱不能超過255個字元',
                 'contact_person.required' => '聯絡人為必填欄位',
                 'contact_person.max'      => '聯絡人不能超過255個字元',
                 'phone.max'               => '電話號碼不能超過20個字元',
