@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Login from '../components/Login.vue';
+import Login from '../pages/Login.vue';
 import Layout from '../components/Layout.vue';
 
 const routes = [
@@ -23,7 +23,7 @@ const routes = [
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('../components/Dashboard.vue'),
+        component: () => import('../pages/Dashboard.vue'),
         meta: { 
           title: '儀表板 | 土方石清運管理系統',
           requiresAuth: true 
@@ -32,81 +32,81 @@ const routes = [
       {
         path: 'profile',
         name: 'Profile',
-        component: () => import('../components/Profile.vue'),
+        component: () => import('../pages/Profile.vue'),
         meta: { 
           title: '個人資料 | 土方石清運管理系統',
           requiresAuth: true 
         }
       },
-                  {
-                    path: 'user',
-                    name: 'User',
-                    component: () => import('../components/User.vue'),
-                    meta: {
-                      title: '使用者管理 | 土方石清運管理系統',
-                      requiresAuth: true
-                    }
-                  },
-                  {
-                    path: 'customer',
-                    name: 'Customer',
-                    component: () => import('../components/Customer.vue'),
-                    meta: {
-                      title: '客戶資料 | 土方石清運管理系統',
-                      requiresAuth: true
-                    }
-                  },
-                  {
-                    path: 'announcement',
-                    name: 'Announcement',
-                    component: () => import('../components/Announcement.vue'),
-                    meta: {
-                      title: '公告欄 | 土方石清運管理系統',
-                      requiresAuth: true
-                    }
-                  },
-                  {
-                    path: 'case',
-                    name: 'Case',
-                    component: () => import('../components/Case.vue'),
-                    meta: {
-                      title: '案件管理 | 土方石清運管理系統',
-                      requiresAuth: true
-                    }
-                  },
-                  {
-                    path: 'earth-data',
-                    name: 'EarthData',
-                    component: () => import('../components/EarthData.vue'),
-                    meta: {
-                      title: '土單資料管理 | 土方石清運管理系統',
-                      requiresAuth: true
-                    }
-                  },
-                  {
-                    path: 'earth-recycle',
-                    name: 'EarthRecycle',
-                    component: () => import('../components/EarthRecycle.vue'),
-                    meta: {
-                      title: '土單回收作業 | 土方石清運管理系統',
-                      requiresAuth: true
-                    }
-                  },
-                  {
-                    path: 'earth-statistics',
-                    name: 'EarthStatistics',
-                    component: () => import('../components/EarthStatistics.vue'),
-                    meta: {
-                      title: '土單使用統計表 | 土方石清運管理系統',
-                      requiresAuth: true
-                    }
-                  }
+      {
+        path: 'user',
+        name: 'User',
+        component: () => import('../pages/User.vue'),
+        meta: {
+          title: '使用者管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'customer',
+        name: 'Customer',
+        component: () => import('../pages/Customer.vue'),
+        meta: {
+          title: '客戶管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'announcement',
+        name: 'Announcement',
+        component: () => import('../pages/Announcement.vue'),
+        meta: {
+          title: '公告欄 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'case',
+        name: 'Case',
+        component: () => import('../pages/Case.vue'),
+        meta: {
+          title: '案件管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'earth-data',
+        name: 'EarthData',
+        component: () => import('../pages/EarthData.vue'),
+        meta: {
+          title: '土單資料管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'earth-recycle',
+        name: 'EarthRecycle',
+        component: () => import('../pages/EarthRecycle.vue'),
+        meta: {
+          title: '土單回收作業 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'earth-statistics',
+        name: 'EarthStatistics',
+        component: () => import('../pages/EarthStatistics.vue'),
+        meta: {
+          title: '土單使用統計表 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      }
     ]
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('../components/NotFound.vue'),
+    component: () => import('../pages/NotFound.vue'),
     meta: { 
       title: '頁面不存在 | 土方石清運管理系統'
     }

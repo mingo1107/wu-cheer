@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CustomerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,4 +36,12 @@ Route::middleware('auth:api')->group(function () {
 
     // 使用者管理 CRUD
     Route::apiResource('users', UserController::class);
+
+    // 客戶管理 CRUD
+    Route::apiResource('customers', CustomerController::class);
+    
+    // 客戶額外功能
+    Route::get('customers/active/list', [CustomerController::class, 'active'])->name('api.customers.active');
+    Route::get('customers/search', [CustomerController::class, 'search'])->name('api.customers.search');
+    Route::get('customers/stats/overview', [CustomerController::class, 'stats'])->name('api.customers.stats');
 });

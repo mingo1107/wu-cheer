@@ -19,5 +19,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // 執行客戶資料種子
+        $this->call([
+            CustomerSeeder::class,
+        ]);
     }
 }
