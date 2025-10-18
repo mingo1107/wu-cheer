@@ -92,6 +92,11 @@ class UserRepository
     {
         $query = $this->model->query();
 
+        // 公司範圍
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $query->where('company_id', auth('api')->user()->company_id);
+        }
+
         // 搜尋條件
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -131,6 +136,11 @@ class UserRepository
         // 設定預設值
         $data['email_verified_at'] = now();
 
+        // 注入公司 ID（若有登入使用者）
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $data['company_id'] = $data['company_id'] ?? auth('api')->user()->company_id;
+        }
+
         return $this->model->create($data);
     }
 
@@ -145,7 +155,8 @@ class UserRepository
     {
         $user = $this->model->find($id);
         
-        if (!$user) {
+        // 防止跨公司更新
+        if (!$user || (auth('api')->check() && isset(auth('api')->user()->company_id) && $user->company_id != auth('api')->user()->company_id)) {
             return null;
         }
 
@@ -172,7 +183,8 @@ class UserRepository
     {
         $user = $this->model->find($id);
         
-        if (!$user) {
+        // 防止跨公司刪除
+        if (!$user || (auth('api')->check() && isset(auth('api')->user()->company_id) && $user->company_id != auth('api')->user()->company_id)) {
             return false;
         }
 

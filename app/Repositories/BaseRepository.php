@@ -1,7 +1,6 @@
 <?php
 namespace App\Repositories;
 
-use App\Support\Helpers\NewCustomHelper;
 use \Illuminate\Pagination\Paginator;
 
 class BaseRepository
@@ -20,10 +19,38 @@ class BaseRepository
      */
     public function initRow(): array
     {
-        return NewCustomHelper::getFillableColumns(
+        return $this->getFillableColumns(
             $this->model::FILLABLE,
             $this->model::ATTRIBUTES
         );
+    }
+
+    private function getFillableColumns(array $fillable, array $attributes = [])
+    {
+        $columns = [];
+        foreach ($fillable as $key) {
+            if (isset($attributes[$key])) {
+                $columns[$key] = $attributes[$key];
+            } elseif (is_null($attributes[$key])) {
+                $columns[$key] = null;
+            } else {
+                $columns[$key] = '';
+            }
+        }
+        return $columns;
+    }
+
+    private function arrangeParamsCast(array $input, array $editable)
+    {
+        $params = [];
+
+        foreach ($input as $key => $value) {
+            if (in_array($key, $editable)) {
+                $params[$key] = $value;
+            }
+        }
+
+        return $params;
     }
 
     /**
@@ -81,26 +108,17 @@ class BaseRepository
         try {
             if (auth('api')->check()) {
                 $user = auth('api')->user();
-                $data['insWho'] = $user->id ?? null;
-                $data['modWho'] = $user->id ?? null;
-            } else {
-                // 如果沒有 JWT 認證，嘗試從 Session 取得（用於 Web 環境）
-                if (getSessionVariables('personnelInfo')) {
-                    $data['insWho'] = getSessionVariables('personnelInfo')['pnlID'] ?? null;
-                    $data['modWho'] = getSessionVariables('personnelInfo')['pnlID'] ?? null;
+                // 注入 company_id（若模型支援）
+                $fillable = method_exists($this->model, 'getFillable') ? $this->model->getFillable() : [];
+                if (in_array('company_id', $fillable) && isset($user->company_id)) {
+                    $data['company_id'] = $user->company_id;
                 }
             }
         } catch (\Exception $e) {
-            // 如果出現任何錯誤，設定為 null
-            $data['insWho'] = null;
-            $data['modWho'] = null;
         }
-        
-        $data['insDate'] = $data['insDate'] ?? arrangeDateTime('Y-m-d H:i:s');
-        $data['modDate'] = $data['modDate'] ?? arrangeDateTime('Y-m-d H:i:s');
 
         $editable = $this->model::FILLABLE;
-        $data     = arrangeCreateParams($data, $editable, $options, true);
+        $data     = $this->arrangeParamsCast($data, $editable);
         return $this->model->create($data);
     }
 
@@ -112,27 +130,9 @@ class BaseRepository
      */
     public function update($id, array $params, array $options = [])
     {
-        $params['modDate'] = $params['modDate'] ?? arrangeDateTime('Y-m-d H:i:s');
-        
-        // 在 API 環境中，使用 JWT 認證取得使用者資訊
-        try {
-            if (auth('api')->check()) {
-                $user = auth('api')->user();
-                $params['modWho'] = $user->id ?? null;
-            } else {
-                // 如果沒有 JWT 認證，嘗試從 Session 取得（用於 Web 環境）
-                if (getSessionVariables('personnelInfo')) {
-                    $params['modWho'] = getSessionVariables('personnelInfo')['pnlID'] ?? null;
-                }
-            }
-        } catch (\Exception $e) {
-            // 如果出現任何錯誤，設定為 null
-            $params['modWho'] = null;
-        }
-        
-        $editable          = $this->model::FILLABLE;
-        $attributes        = arrangeUpdateParams($params, $editable);
-        $instance          = $this->model->findOrFail($id);
+        $editable   = $this->model::FILLABLE;
+        $attributes = $this->arrangeParamsCast($params, $editable);
+        $instance   = $this->model->findOrFail($id);
         return $instance->update($attributes, $options);
     }
 
@@ -145,7 +145,7 @@ class BaseRepository
     public function updateOrCreate(array $params, array $where, array $options = [])
     {
         $editable   = $this->model::FILLABLE;
-        $attributes = arrangeUpdateParams($params, $editable);
+        $attributes = $this->arrangeParamsCast($params, $editable);
         return $this->model->updateOrCreate($where, $attributes);
     }
 

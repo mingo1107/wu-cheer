@@ -20,12 +20,6 @@
           </div>
           <h3 class="text-xl font-semibold text-gray-800 mb-2">案件管理系統</h3>
           <p class="text-gray-600 mb-6">此功能正在開發中，敬請期待</p>
-          <router-link
-            to="/dashboard"
-            class="bg-gradient-to-r from-amber-500 to-orange-600 text-white py-2 px-6 rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-200"
-          >
-            返回儀表板
-          </router-link>
         </div>
       </div>
     </div>

@@ -21,7 +21,14 @@ class AnnouncementService
 
     public function get(int $id)
     {
-        return $this->repo->find($id);
+        $item = $this->repo->find($id);
+        if (!$item) return null;
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            if ($item->company_id !== auth('api')->user()->company_id) {
+                return null;
+            }
+        }
+        return $item;
     }
 
     public function create(array $data)
@@ -34,14 +41,32 @@ class AnnouncementService
     public function update(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
-            return $this->repo->update($id, $data);
+            $item = $this->repo->find($id);
+            if (!$item) return null;
+            if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+                if ($item->company_id !== auth('api')->user()->company_id) {
+                    return null;
+                }
+            }
+            $ok = $this->repo->update($id, $data);
+            if ($ok) {
+                return $this->repo->find($id);
+            }
+            return null;
         });
     }
 
     public function delete(int $id): bool
     {
         return DB::transaction(function () use ($id) {
-            return $this->repo->delete($id);
+            $item = $this->repo->find($id);
+            if (!$item) return false;
+            if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+                if ($item->company_id !== auth('api')->user()->company_id) {
+                    return false;
+                }
+            }
+            return (bool) $this->repo->delete($id);
         });
     }
 }

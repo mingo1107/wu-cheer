@@ -17,7 +17,7 @@ class User extends Authenticatable implements JWTSubject
      *
      * @var list<string>
      */
-    protected $fillable = [
+    const FILLABLE = [
         'company_id',
         'name',
         'email',
@@ -29,10 +29,26 @@ class User extends Authenticatable implements JWTSubject
      *
      * @var list<string>
      */
-    protected $hidden = [
+    const HIDDEN = [
         'password',
         'remember_token',
     ];
+
+    const ATTRIBUTES = [
+        'company_id' => null,
+        'name'       => '',
+        'email'      => '',
+        'password'   => '',
+    ];
+
+    const CASTS = [
+        'email_verified_at' => 'datetime',
+        'password'          => 'hashed',
+    ];
+
+    protected $fillable   = self::FILLABLE;
+    protected $attributes = self::ATTRIBUTES;
+    protected $casts      = self::CASTS;
 
     /**
      * Get the attributes that should be cast.

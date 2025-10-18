@@ -18,6 +18,11 @@ class AnnouncementRepository extends BaseRepository
     {
         $query = $this->model->newQuery();
 
+        // 公司範圍
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $query->where('company_id', auth('api')->user()->company_id);
+        }
+
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {

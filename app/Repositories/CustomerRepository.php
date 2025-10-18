@@ -26,6 +26,11 @@ class CustomerRepository extends BaseRepository
     {
         $query = $this->model->newQuery();
 
+        // 公司範圍
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $query->where('company_id', auth('api')->user()->company_id);
+        }
+
         // 搜尋功能
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -59,7 +64,11 @@ class CustomerRepository extends BaseRepository
      */
     public function getCustomerById(int $id): ?Customer
     {
-        return $this->model->find($id);
+        $query = $this->model->newQuery();
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $query->where('company_id', auth('api')->user()->company_id);
+        }
+        return $query->find($id);
     }
 
     /**
@@ -70,6 +79,9 @@ class CustomerRepository extends BaseRepository
      */
     public function createCustomer(array $data): Customer
     {
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $data['company_id'] = $data['company_id'] ?? auth('api')->user()->company_id;
+        }
         return $this->model->create($data);
     }
 

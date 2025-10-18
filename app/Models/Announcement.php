@@ -8,7 +8,7 @@ class Announcement extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
+    const FILLABLE = [
         'company_id',
         'title',
         'content',
@@ -17,9 +17,22 @@ class Announcement extends Model
         'is_active',
     ];
 
-    protected $casts = [
+    const ATTRIBUTES = [
+        'company_id' => null,
+        'title'      => '',
+        'content'    => '',
+        'starts_at'  => null,
+        'ends_at'    => null,
+        'is_active'  => false,
+    ];
+
+    const CASTS = [
         'starts_at' => 'datetime',
         'ends_at'   => 'datetime',
         'is_active' => 'boolean',
     ];
+
+    protected $fillable   = self::FILLABLE;
+    protected $attributes = self::ATTRIBUTES;
+    protected $casts      = self::CASTS;
 }

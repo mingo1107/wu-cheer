@@ -13,7 +13,7 @@ class Customer extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = [
+    const FILLABLE = [
         'company_id',
         'company_name',
         'contact_person',
@@ -30,10 +30,26 @@ class Customer extends Model
      *
      * @var array<string, string>
      */
-    protected $casts = [
+    const CASTS = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    const ATTRIBUTES = [
+        'company_id'     => null,
+        'company_name'   => '',
+        'contact_person' => '',
+        'phone'          => '',
+        'email'          => '',
+        'address'        => '',
+        'tax_id'         => '',
+        'status'         => 'active',
+        'notes'          => '',
+    ];
+
+    protected $fillable   = self::FILLABLE;
+    protected $attributes = self::ATTRIBUTES;
+    protected $casts      = self::CASTS;
 
     /**
      * Scope a query to only include active customers.
