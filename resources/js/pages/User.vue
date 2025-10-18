@@ -300,7 +300,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import userAPI from '../api/user.js';
 import { useToast } from '../composables/useToast.js';
@@ -324,25 +324,28 @@ if (!Array.isArray(dataList.value)) {
   dataList.value = [];
 }
 
-// 表單資料
-const form = ref({
-  id: null,
-  name: '',
-  email: '',
-  password: '',
-  password_confirmation: ''
-});
+// 表單資料（由後端 show/0 取得預設值）
+const form = ref({ id: null, name: '', email: '', password: '', password_confirmation: '' });
 
-// 計算屬性
-const debouncedSearch = computed(() => {
-  let timeout;
-  return () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      loadUsers();
-    }, 500);
-  };
-});
+const loadUserDefaults = async () => {
+  try {
+    const resp = await userAPI.getUser(0);
+    if (resp.status && resp.data) {
+      form.value = { id: null, ...resp.data, password: '', password_confirmation: '' };
+    }
+  } catch (e) {
+    // ignore, keep local defaults
+  }
+};
+
+// 搜尋防抖
+let searchTimeout;
+const debouncedSearch = () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    loadUsers();
+  }, 500);
+};
 
 // 方法
 const loadUsers = async () => {
@@ -375,15 +378,9 @@ const loadUsers = async () => {
   }
 };
 
-const openCreateModal = () => {
+const openCreateModal = async () => {
   isEditing.value = false;
-  form.value = {
-    id: null,
-    name: '',
-    email: '',
-    password: '',
-    password_confirmation: ''
-  };
+  await loadUserDefaults();
   error.value = null;
   showModal.value = true;
 };
@@ -492,6 +489,7 @@ const formatDate = (dateString) => {
 
 // 生命週期
 onMounted(() => {
+  loadUserDefaults();
   loadUsers();
 });
 </script>

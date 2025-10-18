@@ -295,12 +295,25 @@ const openEdit = (it) => {
   form.contact_person = it.contact_person
   form.phone = it.phone
   form.status = it.status
+  
   errors.value = {}
   showModal.value = true
 }
 
-const closeModal = () => { showModal.value = false; resetForm(); errors.value = {} }
-const resetForm = () => { form.id=null; form.cleaner_name=''; form.tax_id=''; form.contact_person=''; form.phone=''; form.status='active' }
+const closeModal = () => { 
+  showModal.value = false; 
+  resetForm(); 
+  errors.value = {} 
+}
+
+const resetForm = () => { 
+  form.id=null; 
+  form.cleaner_name=''; 
+  form.tax_id=''; 
+  form.contact_person=''; 
+  form.phone=''; 
+  form.status='active' 
+}
 
 const submit = async () => {
   try {

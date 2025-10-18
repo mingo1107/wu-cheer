@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Formatters\ApiOutput;
 use App\Services\CustomerService;
+use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -106,6 +107,15 @@ class CustomerController extends Controller
     public function show(int $id): JsonResponse
     {
         try {
+            // 回傳欄位結構與預設值（id=0）
+            if ($id === 0) {
+                $schema = [];
+                foreach (Customer::FILLABLE as $field) {
+                    $schema[$field] = Customer::ATTRIBUTES[$field] ?? null;
+                }
+                return response()->json($this->apiOutput->successFormat($schema, '客戶欄位預設值'));
+            }
+
             $customer = $this->customerService->getCustomer($id);
 
             if (! $customer) {

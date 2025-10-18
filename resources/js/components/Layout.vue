@@ -77,6 +77,12 @@
                 <router-link to="/cleaner" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
                   <i class="fas fa-truck mr-3"></i> 清運業者管理
                 </router-link>
+                <!-- <router-link to="/case" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-200">
+                  <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"/>
+                  </svg>
+                  案件管理
+                </router-link> -->
                 <router-link to="/announcement" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
                   <i class="fas fa-bullhorn mr-3"></i> 公告管理
                 </router-link>
@@ -97,16 +103,7 @@
               
               <!-- 下拉選單 -->
               <div v-if="earthSystemMenuOpen" class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[9999]" @mouseenter="showEarthSystemMenu" @mouseleave="hideEarthSystemMenu">
-                <router-link
-                  to="/case"
-                  @click="earthSystemMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-200"
-                >
-                  <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"/>
-                  </svg>
-                  案件管理
-                </router-link>
+                
                 <router-link
                   to="/earth-data"
                   @click="earthSystemMenuOpen = false"

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\UserService;
 use App\Formatters\ApiOutput;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -130,6 +131,19 @@ class UserController extends Controller
     public function show(int $id): JsonResponse
     {
         try {
+            // id=0 -> return schema defaults
+            if ($id === 0) {
+                $schema = [];
+                foreach (User::FILLABLE as $field) {
+                    $schema[$field] = User::ATTRIBUTES[$field] ?? null;
+                }
+
+                return response()->json(
+                    $this->apiOutput->successFormat($schema, '使用者欄位預設值'),
+                    200
+                );
+            }
+
             $data = $this->userService->getUserById($id);
 
             return response()->json(

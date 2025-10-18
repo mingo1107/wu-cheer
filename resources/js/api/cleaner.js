@@ -1,6 +1,9 @@
 import api from './base.js';
 
 class CleanerAPI {
+  async getCleaner(id) {
+    return api.get(`/cleaners/${id}`);
+  }
   async getCleaners(filters = {}) {
     return api.get('/cleaners', filters);
   }

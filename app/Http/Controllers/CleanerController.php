@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Formatters\ApiOutput;
 use App\Services\CleanerService;
+use App\Models\Cleaner;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -64,6 +65,14 @@ class CleanerController extends Controller
 
     public function show(int $id): JsonResponse
     {
+        if ($id === 0) {
+            $schema = [];
+            foreach (Cleaner::FILLABLE as $field) {
+                $schema[$field] = Cleaner::ATTRIBUTES[$field] ?? null;
+            }
+            return response()->json($this->out->successFormat($schema, '清運業者欄位預設值'));
+        }
+
         $item = $this->service->get($id);
         if (!$item) {
             return response()->json($this->out->failFormat('清運業者不存在', [], 404));

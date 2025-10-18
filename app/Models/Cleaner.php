@@ -20,7 +20,7 @@ class Cleaner extends Model
     ];
 
     const ATTRIBUTES = [
-        'company_id'     => null,
+        'company_id'     => 1,
         'cleaner_name'   => '',
         'tax_id'         => null,
         'contact_person' => '',

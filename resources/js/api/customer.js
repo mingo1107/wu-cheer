@@ -1,6 +1,9 @@
 import api from './base.js';
 
 class CustomerAPI {
+  async getCustomer(id) {
+    return api.get(`/customers/${id}`);
+  }
   async getCustomers(filters = {}) {
     return api.get('/customers', filters);
   }

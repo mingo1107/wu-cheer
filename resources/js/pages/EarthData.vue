@@ -62,7 +62,7 @@
               <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="搜尋土單編號、案件名稱或客戶名稱..."
+                placeholder="搜尋（批號、工程名稱、客戶代號、土方清運業者、狀態說明）"
                 class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                 @input="debouncedSearch"
               >
@@ -101,7 +101,7 @@
             <HotTable
               :data="dataList"
               :columns="hotColumns"
-              :colHeaders="true"
+              :colHeaders="colHeaders"
               :rowHeaders="true"
               :contextMenu="true"
               :manualColumnResize="true"
@@ -143,72 +143,91 @@
 
           <!-- Modal 表單 -->
           <form @submit.prevent="submitForm" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">土單編號</label>
-              <input
-                v-model="form.slip_number"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="請輸入土單編號"
-              >
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">案件名稱</label>
-              <input
-                v-model="form.case_name"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="請輸入案件名稱"
-              >
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">客戶名稱</label>
-              <input
-                v-model="form.customer_name"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="請輸入客戶名稱"
-              >
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">土方數量</label>
-              <input
-                v-model="form.earth_quantity"
-                type="number"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="請輸入土方數量"
-              >
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">單位</label>
-              <select
-                v-model="form.unit"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              >
-                <option value="">請選擇單位</option>
-                <option value="立方公尺">立方公尺</option>
-                <option value="公噸">公噸</option>
-                <option value="車次">車次</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">備註</label>
-              <textarea
-                v-model="form.remarks"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                rows="3"
-                placeholder="請輸入備註"
-              ></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">批號</label>
+                <input v-model="form.batch_no" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入批號" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">文件序號明細</label>
+                <input v-model="form.doc_seq_detail" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入文件序號明細" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">開立日期</label>
+                <input v-model="form.issue_date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">開立張數</label>
+                <input v-model.number="form.issue_count" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="0" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">客戶代號</label>
+                <input v-model="form.customer_code" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入客戶代號" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">有效期限（起）</label>
+                <input v-model="form.valid_from" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">有效期限（迄）</label>
+                <input v-model="form.valid_to" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">土方清運業者</label>
+                <input v-model="form.cleaner_name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入清運業者名稱" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">工程名稱</label>
+                <input v-model="form.project_name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入工程名稱" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">工程流向管制編號</label>
+                <input v-model="form.flow_control_no" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入管制編號" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">載運數量</label>
+                <input v-model.number="form.carry_qty" type="number" min="0" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="0" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">載運土質</label>
+                <input v-model="form.carry_soil_type" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="例如：一般土方" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">狀態說明</label>
+                <input v-model="form.status_desc" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入狀態說明" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">備註說明</label>
+                <textarea v-model="form.remark_desc" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入備註說明"></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">建檔人員</label>
+                <input v-model="form.created_by" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">建檔日期</label>
+                <input v-model="form.created_at" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">修改人員</label>
+                <input v-model="form.updated_by" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">修改日期</label>
+                <input v-model="form.updated_at" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">系統流水號</label>
+                <input v-model="form.sys_serial_no" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">狀態</label>
+                <select v-model="form.status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                  <option value="">請選擇</option>
+                  <option value="active">有效</option>
+                  <option value="inactive">無效</option>
+                </select>
+              </div>
             </div>
 
             <!-- 錯誤訊息 -->
@@ -258,7 +277,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from '../composables/useToast.js';
 import { HotTable } from '@handsontable/vue3';
@@ -272,127 +291,104 @@ const router = useRouter();
 const { success, error: showError } = useToast();
 
 // 響應式資料
-const dataList = ref([]);
+const hotColumns = ref([
+  { data: 'batch_no', title: '批號', type: 'text', width: 100 },
+  { data: 'doc_seq_detail', title: '文件序號明細', type: 'text', width: 150 },
+  { data: 'issue_date', title: '開立日期', type: 'date', width: 120 },
+  { data: 'issue_count', title: '開立張數', type: 'numeric', width: 100 },
+  { data: 'customer_code', title: '客戶代號', type: 'text', width: 100 },
+  { data: 'valid_from', title: '有效期限（起）', type: 'date', width: 120 },
+  { data: 'valid_to', title: '有效期限（迄）', type: 'date', width: 120 },
+  { data: 'cleaner_name', title: '土方清運業者', type: 'text', width: 150 },
+  { data: 'project_name', title: '工程名稱', type: 'text', width: 150 },
+  { data: 'flow_control_no', title: '工程流向管制編號', type: 'text', width: 150 },
+  { data: 'carry_qty', title: '載運數量', type: 'numeric', width: 100 },
+  { data: 'carry_soil_type', title: '載運土質', type: 'text', width: 100 },
+  { data: 'status_desc', title: '狀態說明', type: 'text', width: 150 },
+  { data: 'remark_desc', title: '備註說明', type: 'text', width: 150 },
+  { data: 'created_by', title: '建檔人員', type: 'text', width: 100 },
+  { data: 'created_at', title: '建檔日期', type: 'date', width: 120 },
+  { data: 'updated_by', title: '修改人員', type: 'text', width: 100 },
+  { data: 'updated_at', title: '修改日期', type: 'date', width: 120 },
+  { data: 'sys_serial_no', title: '系統流水號', type: 'text', width: 150 },
+  { data: 'status', title: '狀態', type: 'text', width: 100 }
+]);
+const colHeaders = hotColumns.value.map(c => c.title);
 const isLoading = ref(false);
 const isSubmitting = ref(false);
 const error = ref(null);
 const searchQuery = ref('');
 const showModal = ref(false);
 
-// 確保 dataList 是陣列
-if (!Array.isArray(dataList.value)) {
-  dataList.value = [];
-}
-
-// 表單資料
-const form = ref({
-  slip_number: '',
-  case_name: '',
-  customer_name: '',
-  earth_quantity: '',
-  unit: '',
-  remarks: ''
-});
-
-// 編輯相關狀態
+// Grid data and edit state
+const dataList = ref([]);
 const isEditing = ref(false);
 const editingItem = ref(null);
-
-// Handsontable 欄位定義
-const hotColumns = ref([
-  { data: 'slip_number', title: '土單編號', type: 'text', width: 120 },
-  { data: 'case_name', title: '案件名稱', type: 'text', width: 200 },
-  { data: 'customer_name', title: '客戶名稱', type: 'text', width: 150 },
-  { data: 'earth_quantity', title: '土方數量', type: 'numeric', width: 100 },
-  { data: 'unit', title: '單位', type: 'text', width: 100 },
-  { data: 'status', title: '狀態', type: 'text', width: 100 },
-  { data: 'created_date', title: '建立日期', type: 'date', width: 120 },
-  { data: 'remarks', title: '備註', type: 'text', width: 200 }
-]);
-
-// 計算屬性
-const debouncedSearch = computed(() => {
-  let timeout;
-  return () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      loadEarthData();
-    }, 500);
-  };
+const form = ref({
+  batch_no: '',
+  doc_seq_detail: '',
+  issue_date: '',
+  issue_count: 0,
+  customer_code: '',
+  valid_from: '',
+  valid_to: '',
+  cleaner_name: '',
+  project_name: '',
+  flow_control_no: '',
+  carry_qty: 0,
+  carry_soil_type: '',
+  status_desc: '',
+  remark_desc: '',
+  created_by: '',
+  created_at: '',
+  updated_by: '',
+  updated_at: '',
+  sys_serial_no: '',
+  status: ''
 });
 
-// 方法
+// Debounced search
+let searchTimeout;
+const debouncedSearch = () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    loadEarthData();
+  }, 500);
+};
+
+// Load mock data (replace with API later)
 const loadEarthData = async () => {
   isLoading.value = true;
   error.value = null;
-  
   try {
-    // 模擬 API 呼叫，使用假資料
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // 假資料
+    await new Promise(r => setTimeout(r, 300));
     dataList.value = [
       {
         id: 1,
-        slip_number: 'ES-2024-001',
-        case_name: '台北市信義區建案A',
-        customer_name: '建商A有限公司',
-        earth_quantity: 150,
-        unit: '立方公尺',
-        status: '已開立',
-        created_date: '2024-01-15',
-        remarks: '一般土方'
-      },
-      {
-        id: 2,
-        slip_number: 'ES-2024-002',
-        case_name: '新北市板橋區建案B',
-        customer_name: '建商B有限公司',
-        earth_quantity: 200,
-        unit: '立方公尺',
-        status: '已核銷',
-        created_date: '2024-01-16',
-        remarks: '特殊土方'
-      },
-      {
-        id: 3,
-        slip_number: 'ES-2024-003',
-        case_name: '桃園市中壢區建案C',
-        customer_name: '建商C有限公司',
-        earth_quantity: 300,
-        unit: '公噸',
-        status: '待處理',
-        created_date: '2024-01-17',
-        remarks: '廢棄土方'
-      },
-      {
-        id: 4,
-        slip_number: 'ES-2024-004',
-        case_name: '台中市西區建案D',
-        customer_name: '建商D有限公司',
-        earth_quantity: 180,
-        unit: '立方公尺',
-        status: '已回收',
-        created_date: '2024-01-18',
-        remarks: '回收土方'
-      },
-      {
-        id: 5,
-        slip_number: 'ES-2024-005',
-        case_name: '高雄市前金區建案E',
-        customer_name: '建商E有限公司',
-        earth_quantity: 250,
-        unit: '車次',
-        status: '已開立',
-        created_date: '2024-01-19',
-        remarks: '混合土方'
+        batch_no: 'B-2025-001',
+        doc_seq_detail: '001-010',
+        issue_date: '2025-10-01',
+        issue_count: 10,
+        customer_code: 'CUST-001',
+        valid_from: '2025-10-01',
+        valid_to: '2025-12-31',
+        cleaner_name: '伍齊清運',
+        project_name: '台北市信義區建案A',
+        flow_control_no: 'FC-0001',
+        carry_qty: 150,
+        carry_soil_type: '一般土方',
+        status_desc: '已開立',
+        remark_desc: '第一批',
+        created_by: 'admin',
+        created_at: '2025-10-01',
+        updated_by: 'admin',
+        updated_at: '2025-10-02',
+        sys_serial_no: 'SYS-10001',
+        status: 'active'
       }
     ];
-    
-    console.log('土單資料列表:', dataList.value);
   } catch (e) {
-    console.error('載入土單資料錯誤:', e);
-    error.value = e.message || '載入土單資料失敗';
+    error.value = e.message || '載入失敗';
     dataList.value = [];
   } finally {
     isLoading.value = false;
@@ -403,12 +399,26 @@ const openCreateModal = () => {
   isEditing.value = false;
   editingItem.value = null;
   form.value = {
-    slip_number: '',
-    case_name: '',
-    customer_name: '',
-    earth_quantity: '',
-    unit: '',
-    remarks: ''
+    batch_no: '',
+    doc_seq_detail: '',
+    issue_date: '',
+    issue_count: 0,
+    customer_code: '',
+    valid_from: '',
+    valid_to: '',
+    cleaner_name: '',
+    project_name: '',
+    flow_control_no: '',
+    carry_qty: 0,
+    carry_soil_type: '',
+    status_desc: '',
+    remark_desc: '',
+    created_by: '',
+    created_at: '',
+    updated_by: '',
+    updated_at: '',
+    sys_serial_no: '',
+    status: ''
   };
   error.value = null;
   showModal.value = true;
@@ -423,12 +433,26 @@ const editItem = (item) => {
   isEditing.value = true;
   editingItem.value = item;
   form.value = {
-    slip_number: item.slip_number || '',
-    case_name: item.case_name || '',
-    customer_name: item.customer_name || '',
-    earth_quantity: item.earth_quantity || '',
-    unit: item.unit || '',
-    remarks: item.remarks || ''
+    batch_no: item.batch_no || '',
+    doc_seq_detail: item.doc_seq_detail || '',
+    issue_date: item.issue_date || '',
+    issue_count: item.issue_count ?? 0,
+    customer_code: item.customer_code || '',
+    valid_from: item.valid_from || '',
+    valid_to: item.valid_to || '',
+    cleaner_name: item.cleaner_name || '',
+    project_name: item.project_name || '',
+    flow_control_no: item.flow_control_no || '',
+    carry_qty: item.carry_qty ?? 0,
+    carry_soil_type: item.carry_soil_type || '',
+    status_desc: item.status_desc || '',
+    remark_desc: item.remark_desc || '',
+    created_by: item.created_by || '',
+    created_at: item.created_at || '',
+    updated_by: item.updated_by || '',
+    updated_at: item.updated_at || '',
+    sys_serial_no: item.sys_serial_no || '',
+    status: item.status || ''
   };
   error.value = null;
   showModal.value = true;
@@ -440,7 +464,7 @@ const deleteItem = (item) => {
     return;
   }
   
-  if (confirm(`確定要刪除土單「${item.slip_number}」嗎？`)) {
+  if (confirm(`確定要刪除土單「${item.batch_no}」嗎？`)) {
     const index = dataList.value.findIndex(i => i.id === item.id);
     if (index > -1) {
       dataList.value.splice(index, 1);
@@ -515,14 +539,26 @@ const onAfterCreateRow = (index, amount) => {
   for (let i = 0; i < amount; i++) {
     const newRow = {
       id: Date.now() + Math.random(),
-      slip_number: '',
-      case_name: '',
-      customer_name: '',
-      earth_quantity: 0,
-      unit: '立方公尺',
-      status: '待處理',
-      created_date: new Date().toISOString().split('T')[0],
-      remarks: ''
+      batch_no: '',
+      doc_seq_detail: '',
+      issue_date: '',
+      issue_count: 0,
+      customer_code: '',
+      valid_from: '',
+      valid_to: '',
+      cleaner_name: '',
+      project_name: '',
+      flow_control_no: '',
+      carry_qty: 0,
+      carry_soil_type: '',
+      status_desc: '',
+      remark_desc: '',
+      created_by: '',
+      created_at: new Date().toISOString().split('T')[0],
+      updated_by: '',
+      updated_at: '',
+      sys_serial_no: '',
+      status: ''
     };
     dataList.value.splice(index + i, 0, newRow);
   }
