@@ -5,6 +5,7 @@ class EarthDataAPI {
   async list(params = {}) { return api.get('/earth-data', params); }
   async get(id) { return api.get(`/earth-data/${id}`); }
   async details(id) { return api.get(`/earth-data/${id}/details`); }
+  async usageStats(id) { return api.get(`/earth-data/${id}/usage/stats`); }
   async create(payload) { return api.post('/earth-data', payload); }
   async update(id, payload) { return api.put(`/earth-data/${id}`, payload); }
   async delete(id) { return api.delete(`/earth-data/${id}`); }

@@ -75,4 +75,39 @@ class EarthDataDetailRepository extends BaseRepository
                 'd.created_at',
             ]);
     }
+
+    /**
+     * 取得總數量、已核銷、待使用
+     */
+    public function getTotals(int $earthDataId): array
+    {
+        $base = $this->model->newQuery()->where('earth_data_id', $earthDataId);
+        $total = (clone $base)->count();
+        $verified = (clone $base)->whereNotNull('verified_at')->count();
+        $pending = max(0, $total - $verified);
+        return [
+            'total' => (int)$total,
+            'verified' => (int)$verified,
+            'pending' => (int)$pending,
+        ];
+    }
+
+    /**
+     * 依日期統計每日核銷數
+     */
+    public function getDailyVerifiedCounts(int $earthDataId): array
+    {
+        $rows = $this->model->newQuery()
+            ->select(DB::raw('DATE(verified_at) as day'), DB::raw('COUNT(*) as cnt'))
+            ->where('earth_data_id', $earthDataId)
+            ->whereNotNull('verified_at')
+            ->groupBy(DB::raw('DATE(verified_at)'))
+            ->orderBy(DB::raw('DATE(verified_at)'))
+            ->get();
+
+        return $rows->map(fn($r) => [
+            'day' => (string)$r->day,
+            'count' => (int)$r->cnt,
+        ])->all();
+    }
 }

@@ -95,11 +95,6 @@ class EarthDataService
         }
     }
 
-    // usage details list
-    public function listDetailsWithUser(int $earthDataId)
-    {
-        return $this->detailRepo->listDetailsWithUser($earthDataId);
-    }
 
     // add/remove detail rows and update issue_count atomically
     public function adjustDetails(int $earthDataId, string $action, int $count): array

@@ -57,9 +57,11 @@ Route::middleware('auth:api')->group(function () {
     // 調整土單明細（增加/減少張數）
     Route::post('earth-data/{id}/details/adjust', [EarthDataController::class, 'adjustDetails'])->name('api.earth-data.adjust-details');
     // 取得指定工程的使用明細
-    Route::get('earth-data/{id}/details', [EarthDataController::class, 'details'])->name('api.earth-data.details');
-    // 匯出指定工程的使用明細（CSV）
-    Route::get('earth-data/{id}/details/export', [EarthDataController::class, 'detailsExport'])->name('api.earth-data.details-export');
+    Route::get('earth-data/{id}/details', [\App\Http\Controllers\EarthDataUsageController::class, 'details'])->name('api.earth-data.details');
+    // 匯出指定工程的使用明細（xlsx）
+    Route::get('earth-data/{id}/details/export', [\App\Http\Controllers\EarthDataUsageController::class, 'detailsExport'])->name('api.earth-data.details-export');
+    // 取得使用統計
+    Route::get('earth-data/{id}/usage/stats', [\App\Http\Controllers\EarthStatisticsController::class, 'stats'])->name('api.earth-data.usage-stats');
 
     //@ announcement 公告欄 CRUD
     Route::apiResource('announcements', AnnouncementController::class);
