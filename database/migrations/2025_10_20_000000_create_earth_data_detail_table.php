@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('earth_data_id')->index();
             $table->string('barcode', 255)->unique();
+            $table->timestamp('print_at')->comment('列印時間')->nullable();
             $table->timestamp('verified_at')->comment('驗證時間')->nullable();
             $table->unsignedBigInteger('verified_by')->nullable();
             $table->timestamps();

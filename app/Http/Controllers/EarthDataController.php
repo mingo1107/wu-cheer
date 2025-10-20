@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 use App\Formatters\ApiOutput;
 use App\Models\EarthData;
 use App\Services\EarthDataService;
-use App\Repositories\EarthDataDetailRepository;
-use Illuminate\Support\Facades\DB;
+// repositories should be consumed via services per project conventions
+use App\Exports\EarthDataDetailsExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,9 +23,67 @@ class EarthDataController extends Controller
     }
 
     /**
+     * 匯出指定工程的土單使用明細（CSV，Excel 可開啟）
+     */
+    public function detailsExport(Request $request, int $id)
+    {
+        try {
+            $earthData = EarthData::query()->find($id);
+            if (! $earthData) {
+                return response()->json($this->apiOutput->failFormat('土單資料不存在', [], 404));
+            }
+
+            if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+                if ((int)$earthData->company_id !== (int)auth('api')->user()->company_id) {
+                    return response()->json($this->apiOutput->failFormat('無權限存取', [], 403));
+                }
+            }
+
+            $rows = $this->service->listDetailsWithUser($earthData->id);
+
+            $filename = 'earth_usage_' . ($earthData->batch_no ?: 'data') . '_' . now()->format('Ymd_His') . '.xlsx';
+            return Excel::download(new EarthDataDetailsExport($rows), $filename);
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('匯出失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 取得指定工程的土單使用明細列表
+     */
+    public function details(Request $request, int $id): JsonResponse
+    {
+        try {
+            $earthData = EarthData::query()->find($id);
+            if (! $earthData) {
+                return response()->json($this->apiOutput->failFormat('土單資料不存在', [], 404));
+            }
+
+            // 權限：限定同公司
+            if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+                if ((int)$earthData->company_id !== (int)auth('api')->user()->company_id) {
+                    return response()->json($this->apiOutput->failFormat('無權限存取', [], 403));
+                }
+            }
+
+            $details = $this->service->listDetailsWithUser($earthData->id);
+
+            return response()->json($this->apiOutput->successFormat([
+                'earth_data_id' => $earthData->id,
+                'flow_control_no' => $earthData->flow_control_no,
+                'project_name' => $earthData->project_name,
+                'count' => $details->count(),
+                'details' => $details,
+            ], '土單使用明細取得成功'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('取得土單使用明細失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
      * 增加/減少土單張數（細項）
      */
-    public function adjustDetails(Request $request, int $id, EarthDataDetailRepository $detailRepo): JsonResponse
+    public function adjustDetails(Request $request, int $id): JsonResponse
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -36,36 +95,13 @@ class EarthDataController extends Controller
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
-            $earthData = EarthData::query()->find($id);
-            if (! $earthData) {
-                return response()->json($this->apiOutput->failFormat('土單資料不存在', [], 404));
-            }
-
             $action = $request->get('action');
             $count  = (int) $request->get('count');
+            $result = $this->service->adjustDetails($id, $action, $count);
 
-            $affected = 0;
-            DB::transaction(function () use (&$affected, $action, $count, $earthData, $detailRepo) {
-                if ($action === 'add') {
-                    $affected = $detailRepo->addDetails($earthData->id, (string)($earthData->flow_control_no ?? ''), $count);
-                    // 更新 issue_count
-                    $earthData->increment('issue_count', $affected);
-                } else { // remove
-                    $affected = $detailRepo->removeDetails($earthData->id, $count);
-                    if ($affected > 0) {
-                        // 避免負數
-                        $newCount = max(0, (int)$earthData->issue_count - $affected);
-                        $earthData->issue_count = $newCount;
-                        $earthData->save();
-                    }
-                }
-            });
-
-            return response()->json($this->apiOutput->successFormat([
-                'affected'     => $affected,
-                'issue_count'  => (int) $earthData->issue_count,
-                'earth_data_id'=> $earthData->id,
-            ], '土單張數調整完成'));
+            return response()->json($this->apiOutput->successFormat(array_merge($result, [
+                'earth_data_id' => $id,
+            ]), '土單張數調整完成'));
         } catch (\Exception $e) {
             return response()->json($this->apiOutput->failFormat('調整土單張數失敗：' . $e->getMessage(), [], 500));
         }

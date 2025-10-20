@@ -15,12 +15,14 @@ class EarthDataDetail extends Model
         'barcode',
         'verified_at',
         'verified_by',
+        'print_at',
     ];
 
     protected $casts = [
         'earth_data_id' => 'integer',
         'verified_at'   => 'datetime',
         'verified_by'   => 'integer',
+        'print_at'      => 'datetime',
     ];
 
     public function earthData()

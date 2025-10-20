@@ -3,14 +3,17 @@ namespace App\Services;
 
 use App\Models\EarthData;
 use App\Repositories\EarthDataRepository;
+use App\Repositories\EarthDataDetailRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EarthDataService
 {
-    public function __construct(private EarthDataRepository $repo)
-    {
+    public function __construct(
+        private EarthDataRepository $repo,
+        private EarthDataDetailRepository $detailRepo,
+    ) {
     }
 
     public function getEarthDataList(array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -90,5 +93,40 @@ class EarthDataService
             Log::error('刪除土單資料失敗', ['error' => $e->getMessage(), 'id' => $id]);
             throw $e;
         }
+    }
+
+    // usage details list
+    public function listDetailsWithUser(int $earthDataId)
+    {
+        return $this->detailRepo->listDetailsWithUser($earthDataId);
+    }
+
+    // add/remove detail rows and update issue_count atomically
+    public function adjustDetails(int $earthDataId, string $action, int $count): array
+    {
+        $earthData = $this->repo->find($earthDataId);
+        if (! $earthData) {
+            throw new \Exception('土單資料不存在');
+        }
+
+        $affected = 0;
+        DB::transaction(function () use (&$affected, $action, $count, $earthData) {
+            if ($action === 'add') {
+                $affected = $this->detailRepo->addDetails($earthData->id, (string)($earthData->flow_control_no ?? ''), $count);
+                $earthData->increment('issue_count', $affected);
+            } else {
+                $affected = $this->detailRepo->removeDetails($earthData->id, $count);
+                if ($affected > 0) {
+                    $newCount = max(0, (int)$earthData->issue_count - $affected);
+                    $earthData->issue_count = $newCount;
+                    $earthData->save();
+                }
+            }
+        });
+
+        return [
+            'affected' => $affected,
+            'issue_count' => (int) $earthData->issue_count,
+        ];
     }
 }

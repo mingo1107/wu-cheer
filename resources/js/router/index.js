@@ -75,20 +75,20 @@ const routes = [
         }
       },
       {
-        path: 'case',
-        name: 'Case',
-        component: () => import('../pages/Case.vue'),
-        meta: {
-          title: '工程管理 | 土方石清運管理系統',
-          requiresAuth: true
-        }
-      },
-      {
         path: 'earth-data',
         name: 'EarthData',
         component: () => import('../pages/EarthData.vue'),
         meta: {
           title: '土單資料管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'earth-usage',
+        name: 'EarthUsage',
+        component: () => import('../pages/EarthUsage.vue'),
+        meta: {
+          title: '土單使用明細 | 土方石清運管理系統',
           requiresAuth: true
         }
       },

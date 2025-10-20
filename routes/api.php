@@ -56,6 +56,10 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('earth-data', EarthDataController::class);
     // 調整土單明細（增加/減少張數）
     Route::post('earth-data/{id}/details/adjust', [EarthDataController::class, 'adjustDetails'])->name('api.earth-data.adjust-details');
+    // 取得指定工程的使用明細
+    Route::get('earth-data/{id}/details', [EarthDataController::class, 'details'])->name('api.earth-data.details');
+    // 匯出指定工程的使用明細（CSV）
+    Route::get('earth-data/{id}/details/export', [EarthDataController::class, 'detailsExport'])->name('api.earth-data.details-export');
 
     //@ announcement 公告欄 CRUD
     Route::apiResource('announcements', AnnouncementController::class);
@@ -63,4 +67,5 @@ Route::middleware('auth:api')->group(function () {
     //@ common lists
     Route::get('common/cleaners', [CommonController::class, 'getCleanerList'])->name('api.common.cleaners');
     Route::get('common/customers', [CommonController::class, 'getCustomerList'])->name('api.common.customers');
+    Route::get('common/earth-data/datalist', [CommonController::class, 'getEarthDataDatalist'])->name('api.common.earth-data.datalist');
 });

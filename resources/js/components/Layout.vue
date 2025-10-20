@@ -77,12 +77,6 @@
                 <router-link to="/cleaner" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
                   <i class="fas fa-truck mr-3"></i> 清運業者管理
                 </router-link>
-                <!-- <router-link to="/case" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-200">
-                  <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"/>
-                  </svg>
-                  案件管理
-                </router-link> -->
                 <router-link to="/announcement" @click="dataMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
                   <i class="fas fa-bullhorn mr-3"></i> 公告管理
                 </router-link>
@@ -113,6 +107,16 @@
                     <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
                   </svg>
                   土單資料管理
+                </router-link>
+                <router-link
+                  to="/earth-usage"
+                  @click="earthSystemMenuOpen = false"
+                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-200"
+                >
+                  <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 11-2 0V5.414l-8.293 8.293a1 1 0 01-1.414 0L3 12.414V15a1 1 0 01-2 0V3a1 1 0 011-1zm14 14a1 1 0 110 2 1 1 0 010-2z" clip-rule="evenodd"/>
+                  </svg>
+                  土單使用明細
                 </router-link>
                 <router-link
                   to="/earth-recycle"

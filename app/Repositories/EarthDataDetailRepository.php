@@ -54,4 +54,25 @@ class EarthDataDetailRepository extends BaseRepository
             return $this->model->newQuery()->whereIn('id', $ids)->delete();
         });
     }
+
+    /**
+     * 取得指定工程的使用明細（含核銷人員姓名）
+     */
+    public function listDetailsWithUser(int $earthDataId)
+    {
+        return $this->model->newQuery()
+            ->from($this->model->getTable() . ' as d')
+            ->leftJoin('users as u', 'u.id', '=', 'd.verified_by')
+            ->where('d.earth_data_id', $earthDataId)
+            ->orderByDesc('d.id')
+            ->get([
+                'd.id',
+                'd.barcode',
+                'd.print_at',
+                'd.verified_at',
+                'd.verified_by',
+                DB::raw('u.name as verified_by_name'),
+                'd.created_at',
+            ]);
+    }
 }

@@ -6,5 +6,8 @@ export default {
   },
   async customers() {
     return await api.get('/common/customers')
+  },
+  async earthDataDatalist(params = {}) {
+    return await api.get('/common/earth-data/datalist', params)
   }
 }
