@@ -145,6 +145,9 @@
                       <button @click="openDeleteModal(item)" class="text-red-600 hover:text-red-900 transition-colors duration-200" title="刪除">
                         <i class="fas fa-trash"></i>
                       </button>
+                      <button @click="openPrint(item)" class="text-blue-600 hover:text-blue-900 transition-colors duration-200" title="列印未列印">
+                        <i class="fas fa-print"></i>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -613,6 +616,13 @@ const submitAdjust = async () => {
   } finally {
     submittingAdjust.value = false
   }
+}
+
+// 開啟列印頁：列印尚未列印的明細
+const openPrint = (item) => {
+  if (!item || !item.id) return
+  const url = `/print/earth-data/${item.id}/pending`
+  window.open(url, '_blank')
 }
 
 const resetForm = () => {

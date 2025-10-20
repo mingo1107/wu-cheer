@@ -110,4 +110,25 @@ class EarthDataDetailRepository extends BaseRepository
             'count' => (int)$r->cnt,
         ])->all();
     }
+
+    /**
+     * 取得未列印的明細
+     */
+    public function getUnprintedDetails(int $earthDataId)
+    {
+        return $this->model->newQuery()
+            ->where('earth_data_id', $earthDataId)
+            ->whereNull('print_at')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * 標記明細為已列印
+     */
+    public function markPrinted(array $ids): int
+    {
+        if (empty($ids)) return 0;
+        return $this->model->newQuery()->whereIn('id', $ids)->update(['print_at' => now()]);
+    }
 }

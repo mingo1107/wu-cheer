@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Formatters\ApiOutput;
 use App\Models\EarthData;
 use App\Services\EarthDataService;
+use App\Services\EarthPrintService;
 // repositories should be consumed via services per project conventions
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -202,5 +203,34 @@ class EarthDataController extends Controller
         } catch (\Exception $e) {
             return response()->json($this->apiOutput->failFormat('調整土單張數失敗：' . $e->getMessage(), [], 500));
         }
+    }
+
+    /**
+     * 列印：將指定工程尚未列印的明細一次輸出並標記為已列印
+     */
+    public function printPending(Request $request, int $id, EarthPrintService $printService)
+    {
+        $earth = $printService->getEarthData($id);
+        if (! $earth) {
+            abort(404, '土單資料不存在');
+        }
+
+        // 權限：限定同公司
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            if ((int) $earth->company_id !== (int) auth('api')->user()->company_id) {
+                abort(403, '無權限存取');
+            }
+        }
+
+        $details = $printService->getUnprintedDetails($earth->id);
+        $ids     = $details->pluck('id')->all();
+        if (! empty($ids)) {
+            $printService->markAsPrinted($ids);
+        }
+
+        return view('print.earth_ticket', [
+            'earth'   => $earth,
+            'details' => $details,
+        ]);
     }
 }
