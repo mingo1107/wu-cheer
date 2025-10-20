@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CommonController;
 use App\Http\Controllers\CleanerController;
 use App\Http\Controllers\EarthDataController;
 use App\Http\Controllers\UserController;
@@ -51,12 +52,15 @@ Route::middleware('auth:api')->group(function () {
     //@ cleaner 清運業者 CRUD
     Route::apiResource('cleaners', CleanerController::class);
 
-    //@ earth-data 土單資料 Excel 介面
-    Route::get('earth-data', [EarthDataController::class, 'index'])->name('api.earth-data.index');
-    Route::get('earth-data/{id}', [EarthDataController::class, 'show'])->whereNumber('id')->name('api.earth-data.show');
-    Route::post('earth-data/bulk-upsert', [EarthDataController::class, 'bulkUpsert'])->name('api.earth-data.bulk-upsert');
-    Route::post('earth-data/bulk-delete', [EarthDataController::class, 'bulkDelete'])->name('api.earth-data.bulk-delete');
+    //@ earth-data 土單資料 CRUD
+    Route::apiResource('earth-data', EarthDataController::class);
+    // 調整土單明細（增加/減少張數）
+    Route::post('earth-data/{id}/details/adjust', [EarthDataController::class, 'adjustDetails'])->name('api.earth-data.adjust-details');
 
     //@ announcement 公告欄 CRUD
     Route::apiResource('announcements', AnnouncementController::class);
+
+    //@ common lists
+    Route::get('common/cleaners', [CommonController::class, 'getCleanerList'])->name('api.common.cleaners');
+    Route::get('common/customers', [CommonController::class, 'getCustomerList'])->name('api.common.customers');
 });

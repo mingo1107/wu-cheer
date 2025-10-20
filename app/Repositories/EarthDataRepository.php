@@ -15,32 +15,47 @@ class EarthDataRepository extends BaseRepository
     public function paginate(array $filters = [], int $perPage = 50): LengthAwarePaginator
     {
         $query = $this->model->newQuery();
+        $table = $this->model->getTable();
+
+        // join users to resolve created_by/updated_by names, and customers/cleaners to resolve display names
+        $query->leftJoin('users as cu', 'cu.id', '=', $table . '.created_by')
+            ->leftJoin('users as uu', 'uu.id', '=', $table . '.updated_by')
+            ->leftJoin('customers as cust', 'cust.id', '=', $table . '.customer_id')
+            ->leftJoin('cleaners as cl', 'cl.id', '=', $table . '.cleaner_id')
+            ->select(
+                $table . '.*',
+                'cu.name as created_by_name',
+                'uu.name as updated_by_name',
+                'cust.customer_name as customer_name',
+                'cl.cleaner_name as cleaner_name'
+            );
 
         if (Auth::guard('api')->check() && isset(Auth::guard('api')->user()->company_id)) {
-            $query->where('company_id', Auth::guard('api')->user()->company_id);
+            $query->where($table . '.company_id', Auth::guard('api')->user()->company_id);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $s = $filters['search'];
-            $query->where(function ($q) use ($s) {
-                $q->where('batch_no', 'like', "%{$s}%")
-                    ->orWhere('project_name', 'like', "%{$s}%")
-                    ->orWhere('customer_code', 'like', "%{$s}%")
-                    ->orWhere('cleaner_name', 'like', "%{$s}%")
-                    ->orWhere('status_desc', 'like', "%{$s}%");
+            $query->where(function ($q) use ($s, $table) {
+                $q->where($table . '.batch_no', 'like', "%{$s}%")
+                    ->orWhere($table . '.project_name', 'like', "%{$s}%")
+                    ->orWhere('cust.customer_name', 'like', "%{$s}%")
+                    ->orWhere($table . '.status_desc', 'like', "%{$s}%");
             });
         }
 
-        if (!empty($filters['issue_date_from'])) {
+        if (! empty($filters['issue_date_from'])) {
             $query->whereDate('issue_date', '>=', $filters['issue_date_from']);
         }
-        if (!empty($filters['issue_date_to'])) {
+        if (! empty($filters['issue_date_to'])) {
             $query->whereDate('issue_date', '<=', $filters['issue_date_to']);
         }
 
-        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortBy    = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
-        $query->orderBy($sortBy, $sortOrder);
+        // Qualify base table columns to avoid ambiguity
+        $qualifiedSort = str_contains($sortBy, '.') ? $sortBy : ($table . '.' . $sortBy);
+        $query->orderBy($qualifiedSort, $sortOrder);
 
         return $query->paginate($perPage);
     }
@@ -65,8 +80,8 @@ class EarthDataRepository extends BaseRepository
         unset($r);
 
         $uniqueBy = ['id'];
-        $update = [
-            'company_id','batch_no','doc_seq_detail','issue_date','issue_count','customer_code','valid_from','valid_to','cleaner_name','project_name','flow_control_no','carry_qty','carry_soil_type','status_desc','remark_desc','created_by','updated_by','sys_serial_no','status','updated_at'
+        $update   = [
+            'company_id', 'batch_no', 'issue_date', 'issue_count', 'customer_id', 'valid_date_from', 'valid_date_to', 'cleaner_id', 'project_name', 'flow_control_no', 'carry_qty', 'carry_soil_type', 'status_desc', 'remark_desc', 'created_by', 'updated_by', 'sys_serial_no', 'status', 'updated_at',
         ];
         return $this->model->upsert($rows, $uniqueBy, $update);
     }

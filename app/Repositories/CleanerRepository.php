@@ -80,4 +80,13 @@ class CleanerRepository extends BaseRepository
         }
         return $query->exists();
     }
+
+    public function listAll(): Collection
+    {
+        $query = $this->model->newQuery();
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $query->where('company_id', auth('api')->user()->company_id);
+        }
+        return $query->orderBy('cleaner_name')->get(['id', 'cleaner_name']);
+    }
 }

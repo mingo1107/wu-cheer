@@ -79,7 +79,7 @@ const routes = [
         name: 'Case',
         component: () => import('../pages/Case.vue'),
         meta: {
-          title: '案件管理 | 土方石清運管理系統',
+          title: '工程管理 | 土方石清運管理系統',
           requiresAuth: true
         }
       },

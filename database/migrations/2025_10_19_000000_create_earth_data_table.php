@@ -3,22 +3,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('earth_data', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('company_id')->index();
+            $table->bigInteger('cleaner_id')->comment('土方清運業者');
             $table->string('batch_no')->index()->comment('批號');
-            $table->string('doc_seq_detail')->nullable()->comment('文件序號明細');
+            $table->string('project_name')->nullable()->comment('工程名稱');
+            $table->string('flow_control_no')->nullable()->comment('工程流向管制編號');
             $table->date('issue_date')->nullable()->comment('開立日期');
             $table->integer('issue_count')->default(0)->comment('開立張數');
             $table->string('customer_code')->nullable()->comment('客戶代號');
-            $table->date('valid_from')->nullable()->comment('有效期限（起）');
-            $table->date('valid_to')->nullable()->comment('有效期限（迄）');
-            $table->string('cleaner_name')->nullable()->comment('土方清運業者');
-            $table->string('project_name')->nullable()->comment('工程名稱');
-            $table->string('flow_control_no')->nullable()->comment('工程流向管制編號');
+            $table->date('valid_date_from')->nullable()->comment('有效期限（起）');
+            $table->date('valid_date_to')->nullable()->comment('有效期限（迄）');
             $table->decimal('carry_qty', 12, 2)->default(0)->comment('載運數量');
             $table->string('carry_soil_type')->nullable()->comment('載運土質');
             $table->string('status_desc')->nullable()->comment('狀態說明');

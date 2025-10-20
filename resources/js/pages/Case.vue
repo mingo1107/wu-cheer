@@ -6,8 +6,8 @@
         <!-- 頁面標題 -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">案件管理</h2>
-            <p class="text-gray-600">管理土方石清運案件</p>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">工程管理</h2>
+            <p class="text-gray-600">管理土方石清運工程案件</p>
           </div>
         </div>
 
@@ -18,7 +18,7 @@
               <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <h3 class="text-xl font-semibold text-gray-800 mb-2">案件管理系統</h3>
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">工程管理系統</h3>
           <p class="text-gray-600 mb-6">此功能正在開發中，敬請期待</p>
         </div>
       </div>

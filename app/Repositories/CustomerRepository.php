@@ -192,4 +192,13 @@ class CustomerRepository extends BaseRepository
             'inactive' => $this->model->inactive()->count(),
         ];
     }
+
+    public function listAll(): Collection
+    {
+        $query = $this->model->newQuery();
+        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+            $query->where('company_id', auth('api')->user()->company_id);
+        }
+        return $query->orderBy('customer_name')->get(['id', 'customer_name']);
+    }
 }

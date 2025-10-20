@@ -11,16 +11,15 @@ class EarthData extends Model
 
     const FILLABLE = [
         'company_id',
+        'cleaner_id',
         'batch_no',
-        'doc_seq_detail',
-        'issue_date',
-        'issue_count',
-        'customer_code',
-        'valid_from',
-        'valid_to',
-        'cleaner_name',
         'project_name',
         'flow_control_no',
+        'issue_date',
+        'issue_count',
+        'customer_id',
+        'valid_date_from',
+        'valid_date_to',
         'carry_qty',
         'carry_soil_type',
         'status_desc',
@@ -34,13 +33,12 @@ class EarthData extends Model
     const ATTRIBUTES = [
         'company_id'      => null,
         'batch_no'        => '',
-        'doc_seq_detail'  => '',
         'issue_date'      => null,
         'issue_count'     => 0,
-        'customer_code'   => '',
-        'valid_from'      => null,
-        'valid_to'        => null,
-        'cleaner_name'    => '',
+        'customer_id'     => null,
+        'valid_date_from' => null,
+        'valid_date_to'   => null,
+        'cleaner_id'      => null,
         'project_name'    => '',
         'flow_control_no' => '',
         'carry_qty'       => 0,
@@ -54,12 +52,13 @@ class EarthData extends Model
     ];
 
     const CASTS = [
-        'issue_date'   => 'date',
-        'valid_from'   => 'date',
-        'valid_to'     => 'date',
-        'carry_qty'    => 'decimal:2',
-        'issue_count'  => 'integer',
-        'deleted_at'   => 'datetime',
+        'issue_date'      => 'date',
+        'valid_date_from' => 'date',
+        'valid_date_to'   => 'date',
+        'carry_qty'       => 'decimal:2',
+        'customer_id'     => 'integer',
+        'issue_count'     => 'integer',
+        'deleted_at'      => 'datetime',
     ];
 
     protected $fillable   = self::FILLABLE;

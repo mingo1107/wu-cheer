@@ -1,9 +1,7 @@
 <template>
   <div class="container mx-auto px-4 py-8">
-    <!-- 土單資料管理內容 -->
     <div class="max-w-7xl mx-auto">
       <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
-        <!-- 頁面標題和操作按鈕 -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">土單資料管理</h2>
@@ -25,251 +23,314 @@
             </nav>
           </div>
           <div class="flex flex-col sm:flex-row gap-4 mt-4 sm:mt-0">
-            <button
-              @click="openCreateModal"
-              class="bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
+            <button @click="openCreateModal" class="bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
               <svg class="w-5 h-5 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
               </svg>
-              新增土單
+              新增工程
             </button>
-            <button
-              @click="exportToExcel"
-              class="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <svg class="w-5 h-5 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-              </svg>
-              匯出 Excel
-            </button>
-            <router-link
-              to="/dashboard"
-              class="bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <svg class="w-5 h-5 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
-              </svg>
-              返回儀表板
-            </router-link>
           </div>
         </div>
 
-        <!-- 搜尋和篩選 -->
         <div class="mb-6">
           <div class="flex flex-col sm:flex-row gap-4">
             <div class="flex-1">
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="搜尋（批號、工程名稱、客戶代號、土方清運業者、狀態說明）"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
-                @input="debouncedSearch"
-              >
+              <div class="relative">
+                <input v-model="searchQuery" @input="debouncedSearch" type="text" placeholder="搜尋（批號、客戶、工程名稱）" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200" />
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-search text-gray-400"></i>
+                </div>
+              </div>
             </div>
-            <button
-              @click="loadEarthData"
-              :disabled="isLoading"
-              class="bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <svg class="w-5 h-5 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-              </svg>
-              搜尋
-            </button>
+            <input v-model="issueDateFrom" @change="loadEarthData()" type="date" class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200" />
+            <span class="self-center text-gray-500">~</span>
+            <input v-model="issueDateTo" @change="loadEarthData()" type="date" class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200" />
+            <select v-model="sortBy" @change="loadEarthData" class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200">
+              <option value="created_at">建立時間</option>
+              <option value="issue_date">開立日期</option>
+              <option value="batch_no">批號</option>
+            </select>
+            <select v-model="sortOrder" @change="loadEarthData" class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200">
+              <option value="desc">降序</option>
+              <option value="asc">升序</option>
+            </select>
           </div>
         </div>
 
-        <!-- Excel 編輯器 -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div v-if="isLoading" class="p-8 text-center">
-            <svg class="animate-spin h-8 w-8 text-amber-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="text-gray-600">載入中...</p>
+          <div class="overflow-x-auto">
+            <table class="min-w-full table-auto divide-y divide-gray-200">
+              <thead class="bg-gradient-to-r from-amber-50 to-orange-50">
+                <tr>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">批號</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[160px]">工程名稱</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[140px]">管制編號</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">開立日期</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">開立張數</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">客戶</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">清運業者</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]">有效起</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]">有效迄</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">載運數量</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">載運土質</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[160px]">狀態說明</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[160px]">備註說明</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">建檔人員</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">修改人員</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[140px]">系統流水號</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[90px]">狀態</th>
+                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-if="loading" class="animate-pulse">
+                  <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <div>載入中...</div>
+                  </td>
+                </tr>
+                <tr v-else-if="rows.length === 0" class="hover:bg-gray-50">
+                  <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                    <i class="fas fa-file-alt text-4xl mb-4 text-gray-300"></i>
+                    <div class="text-lg font-medium">沒有找到土單資料</div>
+                    <div class="text-sm">請嘗試調整搜尋條件或新增土單</div>
+                  </td>
+                </tr>
+                <tr v-else v-for="item in rows" :key="item.id" class="hover:bg-gray-50 transition-colors duration-200">
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.batch_no }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900 truncate max-w-[20rem]" :title="item.project_name">{{ item.project_name }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.flow_control_no }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.issue_date) }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div class="flex items-center gap-2">
+                      <span>{{ item.issue_count ?? 0 }}</span>
+                      <button @click="openAdjustModal(item)" class="px-2 py-1 text-xs rounded bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100" title="調整張數">調整</button>
+                    </div>
+                  </td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.customer_name || '-' }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.cleaner_name }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.valid_date_from) }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.valid_date_to) }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.carry_qty }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.carry_soil_type }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900 truncate max-w-[20rem]" :title="item.status_desc">
+                    <input
+                      v-if="editing[item.id]"
+                      v-model="editing[item.id].status_desc"
+                      @keydown.enter.stop.prevent="submitInline(item, 'status_desc')"
+                      type="text"
+                      class="w-full px-2 py-1 border border-amber-400 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                    <span v-else>{{ item.status_desc }}</span>
+                  </td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900 truncate max-w-[20rem]" :title="item.remark_desc">
+                    <input
+                      v-if="editing[item.id]"
+                      v-model="editing[item.id].remark_desc"
+                      @keydown.enter.stop.prevent="submitInline(item, 'remark_desc')"
+                      type="text"
+                      class="w-full px-2 py-1 border border-amber-400 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                    <span v-else>{{ item.remark_desc }}</span>
+                  </td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.created_by_name }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.updated_by_name }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.sys_serial_no }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.status }}</td>
+                  <td class="px-8 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                      <button @click="openEditModal(item)" class="text-amber-600 hover:text-amber-900 transition-colors duration-200" title="編輯">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button @click="openDeleteModal(item)" class="text-red-600 hover:text-red-900 transition-colors duration-200" title="刪除">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div v-else-if="dataList.length === 0" class="p-8 text-center">
-            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"/>
-            </svg>
-            <p class="text-gray-600 text-lg">沒有找到土單資料</p>
-          </div>
-
-          <div v-else class="p-4">
-            <HotTable
-              :data="dataList"
-              :columns="hotColumns"
-              :colHeaders="colHeaders"
-              :rowHeaders="true"
-              :contextMenu="true"
-              :manualColumnResize="true"
-              :manualRowResize="true"
-              :filters="true"
-              :dropdownMenu="true"
-              :copyPaste="true"
-              :undoRedo="true"
-              :height="500"
-              :width="'100%'"
-              :licenseKey="'non-commercial-and-evaluation'"
-              @after-change="onAfterChange"
-              @after-create-row="onAfterCreateRow"
-              @after-remove-row="onAfterRemoveRow"
-            />
+          <div v-if="pagination && pagination.last_page > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+              <button @click="goToPage(pagination.current_page - 1)" :disabled="pagination.current_page <= 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">上一頁</button>
+              <button @click="goToPage(pagination.current_page + 1)" :disabled="pagination.current_page >= pagination.last_page" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">下一頁</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700">
+                  顯示第
+                  <span class="font-medium">{{ pagination.from || 0 }}</span>
+                  到
+                  <span class="font-medium">{{ pagination.to || 0 }}</span>
+                  筆，共
+                  <span class="font-medium">{{ pagination.total }}</span>
+                  筆資料
+                </p>
+              </div>
+              <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button @click="goToPage(pagination.current_page - 1)" :disabled="pagination.current_page <= 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <template v-for="page in visiblePages" :key="page">
+                    <button v-if="page !== '...'" @click="goToPage(page)" :class="page === pagination.current_page ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                      {{ page }}
+                    </button>
+                    <span v-else class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                  </template>
+                  <button @click="goToPage(pagination.current_page + 1)" :disabled="pagination.current_page >= pagination.last_page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 新增土單 Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <!-- Modal 標題 -->
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900">
-              {{ isEditing ? '編輯土單' : '新增土單' }}
-            </h3>
-            <button
-              @click="closeModal"
-              class="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
+    <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full z-50 flex items-center justify-center p-4">
+      <div class="relative mx-auto px-6 md:px-8 py-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white h-[80vh] max-h-[80vh] overflow-hidden flex flex-col min-h-0">
+        <div class="mt-1 flex flex-col h-full min-h-0">
+          <div class="flex items-center justify-between mb-4 shrink-0 sticky top-0 bg-white z-10 pb-2">
+            <h3 class="text-lg font-medium text-gray-900">{{ isEditing ? '編輯土單' : '新增土單' }}</h3>
+            <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
+              <i class="fas fa-times text-xl"></i>
             </button>
           </div>
 
-          <!-- Modal 表單 -->
-          <form @submit.prevent="submitForm" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">批號</label>
-                <input v-model="form.batch_no" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入批號" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">文件序號明細</label>
-                <input v-model="form.doc_seq_detail" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入文件序號明細" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">開立日期</label>
-                <input v-model="form.issue_date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">開立張數</label>
-                <input v-model.number="form.issue_count" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="0" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">客戶代號</label>
-                <input v-model="form.customer_code" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入客戶代號" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">有效期限（起）</label>
-                <input v-model="form.valid_from" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">有效期限（迄）</label>
-                <input v-model="form.valid_to" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">土方清運業者</label>
-                <input v-model="form.cleaner_name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入清運業者名稱" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">工程名稱</label>
-                <input v-model="form.project_name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入工程名稱" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">工程流向管制編號</label>
-                <input v-model="form.flow_control_no" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入管制編號" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">載運數量</label>
-                <input v-model.number="form.carry_qty" type="number" min="0" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="0" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">載運土質</label>
-                <input v-model="form.carry_soil_type" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="例如：一般土方" />
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">狀態說明</label>
-                <input v-model="form.status_desc" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入狀態說明" />
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">備註說明</label>
-                <textarea v-model="form.remark_desc" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="請輸入備註說明"></textarea>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">建檔人員</label>
-                <input v-model="form.created_by" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">建檔日期</label>
-                <input v-model="form.created_at" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">修改人員</label>
-                <input v-model="form.updated_by" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">修改日期</label>
-                <input v-model="form.updated_at" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">系統流水號</label>
-                <input v-model="form.sys_serial_no" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">狀態</label>
-                <select v-model="form.status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
-                  <option value="">請選擇</option>
-                  <option value="active">有效</option>
-                  <option value="inactive">無效</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- 錯誤訊息 -->
-            <div v-if="error" class="p-4 bg-red-50 border-l-4 border-red-400 rounded">
-              <div class="flex">
-                <svg class="w-5 h-5 text-red-400 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                </svg>
+          <form @submit.prevent="submitForm" class="flex flex-col h-full min-h-0">
+            <div class="flex-1 overflow-y-scroll pr-1 min-h-0 px-4 md:px-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <p class="text-sm text-red-700 font-medium">操作失敗</p>
-                  <p class="text-sm text-red-600">{{ error }}</p>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">批號 *</label>
+                  <input v-model="form.batch_no" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.batch_no }" />
+                  <p v-if="errors.batch_no" class="text-red-500 text-xs mt-1">{{ errors.batch_no }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">開立日期</label>
+                  <input v-model="form.issue_date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.issue_date }" />
+                  <p v-if="errors.issue_date" class="text-red-500 text-xs mt-1">{{ errors.issue_date }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">工程名稱</label>
+                  <input v-model="form.project_name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">工程流向管制編號</label>
+                  <input v-model="form.flow_control_no" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">客戶</label>
+                  <select v-model.number="form.customer_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.customer_id }">
+                    <option :value="0">請選擇</option>
+                    <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+                  </select>
+                  <p v-if="errors.customer_id" class="text-red-500 text-xs mt-1">{{ errors.customer_id }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">土方清運業者</label>
+                  <select v-model.number="form.cleaner_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                    <option :value="0">請選擇</option>
+                    <option v-for="cl in cleanerOptions" :key="cl.id" :value="cl.id">{{ cl.name }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">有效期限（起）</label>
+                  <input v-model="form.valid_date_from" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">有效期限（迄）</label>
+                  <input v-model="form.valid_date_to" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">載運數量</label>
+                  <input v-model.number="form.carry_qty" type="number" min="0" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">載運土質</label>
+                  <input v-model="form.carry_soil_type" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">狀態說明</label>
+                  <input v-model="form.status_desc" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">備註說明</label>
+                  <textarea v-model="form.remark_desc" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"></textarea>
                 </div>
               </div>
             </div>
 
-            <!-- Modal 按鈕 -->
-            <div class="flex justify-end space-x-3 pt-4">
-              <button
-                type="button"
-                @click="closeModal"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                :disabled="isSubmitting"
-                class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                <span v-if="!isSubmitting">
-                  {{ isEditing ? '更新' : '建立' }}
-                </span>
-                <span v-else class="flex items-center">
-                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  處理中...
-                </span>
+            <div class="flex justify-end space-x-3 pt-4 border-t mt-4 bg-white shrink-0 sticky bottom-0 z-10 px-4 md:px-6">
+              <button type="button" @click="closeModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">取消</button>
+              <button type="submit" :disabled="submitting" class="px-4 py-2 text-sm font-medium text-white bg-amber-600 border border-transparent rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i v-if="submitting" class="fas fa-spinner fa-spin mr-2"></i>
+                {{ isEditing ? '更新' : '建立' }}
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mt-4">確認刪除</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500">您確定要刪除土單「<strong>{{ itemToDelete?.batch_no }}</strong>」嗎？此操作無法復原。</p>
+          </div>
+          <div class="flex justify-center space-x-3 pt-4">
+            <button @click="closeDeleteModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">取消</button>
+            <button @click="confirmDelete" :disabled="deleting" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              <i v-if="deleting" class="fas fa-spinner fa-spin mr-2"></i>
+              刪除
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adjust Count Modal -->
+    <div v-if="showAdjustModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full z-50 flex items-center justify-center p-4">
+      <div class="relative mx-auto px-6 py-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-medium text-gray-900">調整開立張數</h3>
+          <button @click="closeAdjustModal" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">操作</label>
+            <div class="flex items-center gap-6">
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" value="add" v-model="adjustAction" />
+                <span>增加</span>
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input type="radio" value="remove" v-model="adjustAction" />
+                <span>減少（僅刪未核銷）</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">數量</label>
+            <input type="number" min="1" v-model.number="adjustCount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+          </div>
+        </div>
+        <div class="mt-5 flex justify-end gap-3">
+          <button @click="closeAdjustModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">取消</button>
+          <button @click="submitAdjust" :disabled="submittingAdjust" class="px-4 py-2 text-sm font-medium text-white bg-amber-600 border border-transparent rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed">
+            <i v-if="submittingAdjust" class="fas fa-spinner fa-spin mr-2"></i>
+            確認
+          </button>
         </div>
       </div>
     </div>
@@ -277,301 +338,369 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useToast } from '../composables/useToast.js';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useToast } from '@/composables/useToast'
+import earthDataAPI from '../api/earthData.js'
+import commonAPI from '../api/common.js'
 
-// 註冊所有 Handsontable 模組
-registerAllModules();
+const { showToast } = useToast()
 
-const router = useRouter();
-const { success, error: showError } = useToast();
+const rows = ref([])
+const loading = ref(false)
+const pagination = ref(null)
+const searchQuery = ref('')
+const issueDateFrom = ref('')
+const issueDateTo = ref('')
+const sortBy = ref('created_at')
+const sortOrder = ref('desc')
 
-// 響應式資料
-const hotColumns = ref([
-  { data: 'batch_no', title: '批號', type: 'text', width: 100 },
-  { data: 'doc_seq_detail', title: '文件序號明細', type: 'text', width: 150 },
-  { data: 'issue_date', title: '開立日期', type: 'date', width: 120 },
-  { data: 'issue_count', title: '開立張數', type: 'numeric', width: 100 },
-  { data: 'customer_code', title: '客戶代號', type: 'text', width: 100 },
-  { data: 'valid_from', title: '有效期限（起）', type: 'date', width: 120 },
-  { data: 'valid_to', title: '有效期限（迄）', type: 'date', width: 120 },
-  { data: 'cleaner_name', title: '土方清運業者', type: 'text', width: 150 },
-  { data: 'project_name', title: '工程名稱', type: 'text', width: 150 },
-  { data: 'flow_control_no', title: '工程流向管制編號', type: 'text', width: 150 },
-  { data: 'carry_qty', title: '載運數量', type: 'numeric', width: 100 },
-  { data: 'carry_soil_type', title: '載運土質', type: 'text', width: 100 },
-  { data: 'status_desc', title: '狀態說明', type: 'text', width: 150 },
-  { data: 'remark_desc', title: '備註說明', type: 'text', width: 150 },
-  { data: 'created_by', title: '建檔人員', type: 'text', width: 100 },
-  { data: 'created_at', title: '建檔日期', type: 'date', width: 120 },
-  { data: 'updated_by', title: '修改人員', type: 'text', width: 100 },
-  { data: 'updated_at', title: '修改日期', type: 'date', width: 120 },
-  { data: 'sys_serial_no', title: '系統流水號', type: 'text', width: 150 },
-  { data: 'status', title: '狀態', type: 'text', width: 100 }
-]);
-const colHeaders = hotColumns.value.map(c => c.title);
-const isLoading = ref(false);
-const isSubmitting = ref(false);
-const error = ref(null);
-const searchQuery = ref('');
-const showModal = ref(false);
+const showModal = ref(false)
+const showDeleteModal = ref(false)
+const isEditing = ref(false)
+const submitting = ref(false)
+const deleting = ref(false)
+const itemToDelete = ref(null)
+// adjust count modal state
+const showAdjustModal = ref(false)
+const adjustTarget = ref(null)
+const adjustAction = ref('add')
+const adjustCount = ref(1)
+const submittingAdjust = ref(false)
 
-// Grid data and edit state
-const dataList = ref([]);
-const isEditing = ref(false);
-const editingItem = ref(null);
-const form = ref({
+// options for selects
+const cleanerOptions = ref([])
+const customerOptions = ref([])
+
+// inline edit state
+const editing = reactive({}) // map: id -> shallow copy of editing values
+const editingField = reactive({}) // map: id -> active field name
+
+const isEditingCell = (id, field) => editingField[id] === field
+
+const startInline = (item, field) => {
+  editing[item.id] = { status_desc: item.status_desc || '', remark_desc: item.remark_desc || '' }
+  editingField[item.id] = field
+}
+
+const cancelInline = (id, field) => {
+  delete editing[id]
+  delete editingField[id]
+}
+
+const submitInline = async (item, field) => {
+  try {
+    const payload = { [field]: editing[item.id]?.[field] ?? '' }
+    const resp = await earthDataAPI.update(item.id, payload)
+    if (resp.status) {
+      item[field] = payload[field]
+      showToast('已更新', 'success')
+    } else {
+      throw new Error(resp.message || '更新失敗')
+    }
+  } catch (e) {
+    showToast(e.message || '更新失敗', 'error')
+  } finally {
+    // keep editing buffers so inputs remain editable
+  }
+}
+
+const form = reactive({
+  id: null,
   batch_no: '',
-  doc_seq_detail: '',
   issue_date: '',
   issue_count: 0,
-  customer_code: '',
-  valid_from: '',
-  valid_to: '',
-  cleaner_name: '',
+  customer_id: 0,
+  valid_date_from: '',
+  valid_date_to: '',
+  cleaner_id: 0,
   project_name: '',
   flow_control_no: '',
   carry_qty: 0,
   carry_soil_type: '',
   status_desc: '',
   remark_desc: '',
-  created_by: '',
-  created_at: '',
-  updated_by: '',
-  updated_at: '',
   sys_serial_no: '',
-  status: ''
-});
+  status: 'active'
+})
 
-// Debounced search
-let searchTimeout;
+const errors = ref({})
+
+let searchTimeout = null
 const debouncedSearch = () => {
-  clearTimeout(searchTimeout);
+  clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    loadEarthData();
-  }, 500);
-};
+    loadEarthData()
+  }, 500)
+}
 
-// Load mock data (replace with API later)
-const loadEarthData = async () => {
-  isLoading.value = true;
-  error.value = null;
+// load select options
+const loadCleanerOptions = async () => {
   try {
-    await new Promise(r => setTimeout(r, 300));
-    dataList.value = [
-      {
-        id: 1,
-        batch_no: 'B-2025-001',
-        doc_seq_detail: '001-010',
-        issue_date: '2025-10-01',
-        issue_count: 10,
-        customer_code: 'CUST-001',
-        valid_from: '2025-10-01',
-        valid_to: '2025-12-31',
-        cleaner_name: '伍齊清運',
-        project_name: '台北市信義區建案A',
-        flow_control_no: 'FC-0001',
-        carry_qty: 150,
-        carry_soil_type: '一般土方',
-        status_desc: '已開立',
-        remark_desc: '第一批',
-        created_by: 'admin',
-        created_at: '2025-10-01',
-        updated_by: 'admin',
-        updated_at: '2025-10-02',
-        sys_serial_no: 'SYS-10001',
-        status: 'active'
-      }
-    ];
-  } catch (e) {
-    error.value = e.message || '載入失敗';
-    dataList.value = [];
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const openCreateModal = () => {
-  isEditing.value = false;
-  editingItem.value = null;
-  form.value = {
-    batch_no: '',
-    doc_seq_detail: '',
-    issue_date: '',
-    issue_count: 0,
-    customer_code: '',
-    valid_from: '',
-    valid_to: '',
-    cleaner_name: '',
-    project_name: '',
-    flow_control_no: '',
-    carry_qty: 0,
-    carry_soil_type: '',
-    status_desc: '',
-    remark_desc: '',
-    created_by: '',
-    created_at: '',
-    updated_by: '',
-    updated_at: '',
-    sys_serial_no: '',
-    status: ''
-  };
-  error.value = null;
-  showModal.value = true;
-};
-
-const editItem = (item) => {
-  if (!item || !item.id) {
-    error.value = '無效的土單資料';
-    return;
-  }
-  
-  isEditing.value = true;
-  editingItem.value = item;
-  form.value = {
-    batch_no: item.batch_no || '',
-    doc_seq_detail: item.doc_seq_detail || '',
-    issue_date: item.issue_date || '',
-    issue_count: item.issue_count ?? 0,
-    customer_code: item.customer_code || '',
-    valid_from: item.valid_from || '',
-    valid_to: item.valid_to || '',
-    cleaner_name: item.cleaner_name || '',
-    project_name: item.project_name || '',
-    flow_control_no: item.flow_control_no || '',
-    carry_qty: item.carry_qty ?? 0,
-    carry_soil_type: item.carry_soil_type || '',
-    status_desc: item.status_desc || '',
-    remark_desc: item.remark_desc || '',
-    created_by: item.created_by || '',
-    created_at: item.created_at || '',
-    updated_by: item.updated_by || '',
-    updated_at: item.updated_at || '',
-    sys_serial_no: item.sys_serial_no || '',
-    status: item.status || ''
-  };
-  error.value = null;
-  showModal.value = true;
-};
-
-const deleteItem = (item) => {
-  if (!item || !item.id) {
-    error.value = '無效的土單資料';
-    return;
-  }
-  
-  if (confirm(`確定要刪除土單「${item.batch_no}」嗎？`)) {
-    const index = dataList.value.findIndex(i => i.id === item.id);
-    if (index > -1) {
-      dataList.value.splice(index, 1);
-      success('土單刪除成功！');
+    const resp = await commonAPI.cleaners()
+    if (resp.status) {
+      cleanerOptions.value = Array.isArray(resp.data) ? resp.data : []
     }
-  }
-};
+  } catch (e) {}
+}
 
-const closeModal = () => {
-  showModal.value = false;
-  error.value = null;
-};
-
-const submitForm = async () => {
-  isSubmitting.value = true;
-  error.value = null;
-  
+const loadCustomerOptions = async () => {
   try {
-    // 模擬 API 呼叫
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (isEditing.value && editingItem.value) {
-      // 編輯模式
-      const index = dataList.value.findIndex(i => i.id === editingItem.value.id);
-      if (index > -1) {
-        dataList.value[index] = {
-          ...dataList.value[index],
-          ...form.value,
-          earth_quantity: Number(form.value.earth_quantity) || 0
-        };
-        success('土單更新成功！');
+    const resp = await commonAPI.customers()
+    if (resp.status) {
+      customerOptions.value = Array.isArray(resp.data) ? resp.data : []
+    }
+  } catch (e) {}
+}
+
+const visiblePages = computed(() => {
+  if (!pagination.value) return []
+  const current = pagination.value.current_page
+  const last = pagination.value.last_page
+  const pages = []
+  if (last <= 7) {
+    for (let i = 1; i <= last; i++) pages.push(i)
+  } else if (current <= 4) {
+    for (let i = 1; i <= 5; i++) pages.push(i)
+    pages.push('...')
+    pages.push(last)
+  } else if (current >= last - 3) {
+    pages.push(1)
+    pages.push('...')
+    for (let i = last - 4; i <= last; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    pages.push('...')
+    for (let i = current - 1; i <= current + 1; i++) pages.push(i)
+    pages.push('...')
+    pages.push(last)
+  }
+  return pages
+})
+
+const loadEarthData = async (page = 1) => {
+  try {
+    loading.value = true
+    const resp = await earthDataAPI.list({
+      page,
+      search: searchQuery.value,
+      issue_date_from: issueDateFrom.value,
+      issue_date_to: issueDateTo.value,
+      sort_by: sortBy.value,
+      sort_order: sortOrder.value,
+      per_page: 15
+    })
+
+    if (resp.status) {
+      rows.value = Array.isArray(resp.data?.data) ? resp.data.data : []
+      // initialize inline edit buffers per row
+      rows.value.forEach(r => {
+        editing[r.id] = {
+          status_desc: r.status_desc || '',
+          remark_desc: r.remark_desc || ''
+        }
+      })
+      pagination.value = {
+        current_page: resp.data.current_page,
+        last_page: resp.data.last_page,
+        per_page: resp.data.per_page,
+        total: resp.data.total,
+        from: resp.data.from,
+        to: resp.data.to
       }
     } else {
-      // 新增模式
-      const newItem = {
-        id: Date.now(),
-        ...form.value,
-        earth_quantity: Number(form.value.earth_quantity) || 0,
-        status: '已開立',
-        created_date: new Date().toISOString().split('T')[0]
-      };
-      
-      dataList.value.unshift(newItem);
-      success('土單新增成功！');
+      throw new Error(resp.message || '載入土單資料失敗')
     }
-    
-    showModal.value = false;
-  } catch (e) {
-    error.value = e.message || '操作失敗';
-    showError(e.message || '操作失敗');
+  } catch (error) {
+    console.error('載入土單資料錯誤:', error)
+    showToast(error.message || '載入土單資料失敗', 'error')
   } finally {
-    isSubmitting.value = false;
+    loading.value = false
   }
-};
+}
 
-const exportToExcel = () => {
-  // 模擬匯出功能
-  success('Excel 匯出功能開發中...');
-};
-
-// Handsontable 事件處理
-const onAfterChange = (changes, source) => {
-  if (source !== 'loadData') {
-    console.log('資料變更:', changes);
-    // 這裡可以加入自動儲存邏輯
+const goToPage = (page) => {
+  if (page >= 1 && page <= pagination.value.last_page) {
+    loadEarthData(page)
   }
-};
+}
 
-const onAfterCreateRow = (index, amount) => {
-  console.log('新增行:', index, amount);
-  // 新增空行到資料列表
-  for (let i = 0; i < amount; i++) {
-    const newRow = {
-      id: Date.now() + Math.random(),
-      batch_no: '',
-      doc_seq_detail: '',
-      issue_date: '',
-      issue_count: 0,
-      customer_code: '',
-      valid_from: '',
-      valid_to: '',
-      cleaner_name: '',
-      project_name: '',
-      flow_control_no: '',
-      carry_qty: 0,
-      carry_soil_type: '',
-      status_desc: '',
-      remark_desc: '',
-      created_by: '',
-      created_at: new Date().toISOString().split('T')[0],
-      updated_by: '',
-      updated_at: '',
-      sys_serial_no: '',
-      status: ''
-    };
-    dataList.value.splice(index + i, 0, newRow);
+const openCreateModal = () => {
+  isEditing.value = false
+  resetForm()
+  // ensure options are ready
+  if (cleanerOptions.value.length === 0) loadCleanerOptions()
+  if (customerOptions.value.length === 0) loadCustomerOptions()
+  showModal.value = true
+}
+
+const openEditModal = (item) => {
+  isEditing.value = true
+  form.id = item.id
+  form.batch_no = item.batch_no || ''
+  form.cleaner_id = item.cleaner_id || 0
+  form.project_name = item.project_name || ''
+  form.flow_control_no = item.flow_control_no || ''
+  form.issue_date = item.issue_date || ''
+  form.issue_count = item.issue_count ?? 0
+  form.customer_id = item.customer_id || 0
+  form.valid_date_from = item.valid_date_from || ''
+  form.valid_date_to = item.valid_date_to || ''
+  form.carry_qty = item.carry_qty ?? 0
+  form.carry_soil_type = item.carry_soil_type || ''
+  form.status_desc = item.status_desc || ''
+  form.remark_desc = item.remark_desc || ''
+  form.sys_serial_no = item.sys_serial_no || ''
+  form.status = item.status || 'active'
+  // ensure options are ready
+  if (cleanerOptions.value.length === 0) loadCleanerOptions()
+  if (customerOptions.value.length === 0) loadCustomerOptions()
+  errors.value = {}
+  showModal.value = true
+}
+
+const openDeleteModal = (item) => {
+  itemToDelete.value = item
+  showDeleteModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  resetForm()
+  errors.value = {}
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  itemToDelete.value = null
+}
+
+const openAdjustModal = (item) => {
+  adjustTarget.value = item
+  adjustAction.value = 'add'
+  adjustCount.value = 1
+  showAdjustModal.value = true
+}
+
+const closeAdjustModal = () => {
+  showAdjustModal.value = false
+  adjustTarget.value = null
+}
+
+const submitAdjust = async () => {
+  if (!adjustTarget.value) return
+  try {
+    submittingAdjust.value = true
+    const resp = await earthDataAPI.adjustDetails(adjustTarget.value.id, {
+      action: adjustAction.value,
+      count: adjustCount.value
+    })
+    if (resp.status) {
+      // update current row issue_count
+      const newCount = resp.data?.issue_count
+      if (typeof newCount === 'number') {
+        adjustTarget.value.issue_count = newCount
+      } else {
+        // fallback reload
+        await loadEarthData(pagination.value?.current_page || 1)
+      }
+      showToast('調整成功', 'success')
+      closeAdjustModal()
+    } else {
+      throw new Error(resp.message || '調整失敗')
+    }
+  } catch (e) {
+    showToast(e.message || '調整失敗', 'error')
+  } finally {
+    submittingAdjust.value = false
   }
-};
+}
 
-const onAfterRemoveRow = (index, amount) => {
-  console.log('刪除行:', index, amount);
-  // 從資料列表中移除行
-  dataList.value.splice(index, amount);
-};
+const resetForm = () => {
+  form.id = null
+  form.batch_no = ''
+  form.issue_date = ''
+  form.issue_count = 0
+  form.customer_id = 0
+  form.valid_date_from = ''
+  form.valid_date_to = ''
+  form.cleaner_id = 0
+  form.project_name = ''
+  form.flow_control_no = ''
+  form.carry_qty = 0
+  form.carry_soil_type = ''
+  form.status_desc = ''
+  form.remark_desc = ''
+  form.sys_serial_no = ''
+  form.status = 'active'
+}
 
-// 生命週期
-onMounted(() => {
-  loadEarthData();
-});
+const submitForm = async () => {
+  try {
+    submitting.value = true
+    errors.value = {}
+
+    let resp
+    if (isEditing.value) {
+      resp = await earthDataAPI.update(form.id, form)
+    } else {
+      resp = await earthDataAPI.create(form)
+    }
+
+    if (resp.status) {
+      showToast(isEditing.value ? '土單更新成功' : '土單建立成功', 'success')
+      closeModal()
+      loadEarthData()
+    } else {
+      if (resp.errors) {
+        errors.value = resp.errors
+      } else {
+        throw new Error(resp.message || '操作失敗')
+      }
+    }
+  } catch (error) {
+    console.error('提交表單錯誤:', error)
+    showToast(error.message || '操作失敗', 'error')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const confirmDelete = async () => {
+  try {
+    deleting.value = true
+    const resp = await earthDataAPI.delete(itemToDelete.value.id)
+    if (resp.status) {
+      showToast('土單刪除成功', 'success')
+      closeDeleteModal()
+      loadEarthData()
+    } else {
+      throw new Error(resp.message || '刪除失敗')
+    }
+  } catch (error) {
+    console.error('刪除土單錯誤:', error)
+    showToast(error.message || '刪除失敗', 'error')
+  } finally {
+    deleting.value = false
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+}
+
+const formatDateTime = (dateString) => {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
+watch([sortBy, sortOrder], () => { loadEarthData() })
+
+onMounted(() => { 
+  loadEarthData()
+  loadCleanerOptions()
+  loadCustomerOptions()
+})
 </script>

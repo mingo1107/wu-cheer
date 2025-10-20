@@ -2,105 +2,229 @@
 namespace App\Http\Controllers;
 
 use App\Formatters\ApiOutput;
-use App\Services\EarthDataService;
 use App\Models\EarthData;
+use App\Services\EarthDataService;
+use App\Repositories\EarthDataDetailRepository;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class EarthDataController extends Controller
 {
-    public function __construct(private EarthDataService $service, private ApiOutput $out)
+    protected EarthDataService $service;
+    protected ApiOutput $apiOutput;
+
+    public function __construct(EarthDataService $service, ApiOutput $apiOutput)
     {
+        $this->service   = $service;
+        $this->apiOutput = $apiOutput;
     }
 
+    /**
+     * 增加/減少土單張數（細項）
+     */
+    public function adjustDetails(Request $request, int $id, EarthDataDetailRepository $detailRepo): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'action' => 'required|in:add,remove',
+                'count'  => 'required|integer|min:1',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
+            }
+
+            $earthData = EarthData::query()->find($id);
+            if (! $earthData) {
+                return response()->json($this->apiOutput->failFormat('土單資料不存在', [], 404));
+            }
+
+            $action = $request->get('action');
+            $count  = (int) $request->get('count');
+
+            $affected = 0;
+            DB::transaction(function () use (&$affected, $action, $count, $earthData, $detailRepo) {
+                if ($action === 'add') {
+                    $affected = $detailRepo->addDetails($earthData->id, (string)($earthData->flow_control_no ?? ''), $count);
+                    // 更新 issue_count
+                    $earthData->increment('issue_count', $affected);
+                } else { // remove
+                    $affected = $detailRepo->removeDetails($earthData->id, $count);
+                    if ($affected > 0) {
+                        // 避免負數
+                        $newCount = max(0, (int)$earthData->issue_count - $affected);
+                        $earthData->issue_count = $newCount;
+                        $earthData->save();
+                    }
+                }
+            });
+
+            return response()->json($this->apiOutput->successFormat([
+                'affected'     => $affected,
+                'issue_count'  => (int) $earthData->issue_count,
+                'earth_data_id'=> $earthData->id,
+            ], '土單張數調整完成'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('調整土單張數失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 取得土單資料列表
+     */
     public function index(Request $request): JsonResponse
     {
-        $filters = [
-            'search'          => $request->get('search'),
-            'issue_date_from' => $request->get('issue_date_from'),
-            'issue_date_to'   => $request->get('issue_date_to'),
-            'sort_by'         => $request->get('sort_by', 'created_at'),
-            'sort_order'      => $request->get('sort_order', 'desc'),
-        ];
-        $perPage = (int) $request->get('per_page', 100);
-        $data = $this->service->list($filters, $perPage);
-        return response()->json($this->out->successFormat($data, '土單資料列表取得成功'));
+        try {
+            $filters = [
+                'search'          => $request->get('search'),
+                'issue_date_from' => $request->get('issue_date_from'),
+                'issue_date_to'   => $request->get('issue_date_to'),
+                'sort_by'         => $request->get('sort_by', 'created_at'),
+                'sort_order'      => $request->get('sort_order', 'desc'),
+            ];
+
+            $perPage = (int) $request->get('per_page', 15);
+            $list    = $this->service->getEarthDataList($filters, $perPage);
+
+            return response()->json($this->apiOutput->successFormat($list, '土單資料列表取得成功'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('取得土單資料列表失敗：' . $e->getMessage(), [], 500));
+        }
     }
 
-    public function bulkUpsert(Request $request): JsonResponse
+    /**
+     * 建立土單資料
+     */
+    public function store(Request $request): JsonResponse
     {
-        $rows = $request->input('rows', []);
-        if (!is_array($rows)) {
-            return response()->json($this->out->failFormat('參數格式錯誤', [], 422));
-        }
+        try {
+            $validator = Validator::make($request->all(), [
+                'batch_no'        => 'required|string|max:255',
+                'cleaner_id'      => 'nullable|integer',
+                'project_name'    => 'nullable|string|max:255',
+                'issue_date'      => 'nullable|date',
+                'issue_count'     => 'nullable|integer|min:0',
+                'customer_id'     => 'nullable|integer|exists:customers,id',
+                'valid_date_from' => 'nullable|date',
+                'valid_date_to'   => 'nullable|date|after_or_equal:valid_date_from',
+                'flow_control_no' => 'nullable|string|max:255',
+                'carry_qty'       => 'nullable|numeric|min:0',
+                'carry_soil_type' => 'nullable|string|max:255',
+                'status_desc'     => 'nullable|string|max:500',
+                'remark_desc'     => 'nullable|string|max:1000',
+                //'sys_serial_no'   => 'nullable|string|max:255',
+                'status'          => 'nullable|in:active,inactive',
+            ], [
+                'batch_no.required' => '批號為必填欄位',
+            ]);
 
-        $rules = [
-            'batch_no'       => 'required|string|max:255',
-            'doc_seq_detail' => 'nullable|string|max:255',
-            'issue_date'     => 'nullable|date',
-            'issue_count'    => 'nullable|integer|min:0',
-            'customer_code'  => 'nullable|string|max:255',
-            'valid_from'     => 'nullable|date',
-            'valid_to'       => 'nullable|date|after_or_equal:valid_from',
-            'cleaner_name'   => 'nullable|string|max:255',
-            'project_name'   => 'nullable|string|max:255',
-            'flow_control_no'=> 'nullable|string|max:255',
-            'carry_qty'      => 'nullable|numeric|min:0',
-            'carry_soil_type'=> 'nullable|string|max:255',
-            'status_desc'    => 'nullable|string|max:255',
-            'remark_desc'    => 'nullable|string',
-            'created_by'     => 'nullable|string|max:255',
-            'updated_by'     => 'nullable|string|max:255',
-            'sys_serial_no'  => 'nullable|string|max:255',
-            'status'         => 'nullable|string|max:50',
-        ];
-
-        foreach ($rows as $i => $row) {
-            $v = Validator::make($row, $rules);
-            if ($v->fails()) {
-                return response()->json($this->out->failFormat("第" . ($i + 1) . "筆資料驗證失敗", $v->errors(), 422));
+            if ($validator->fails()) {
+                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
-        }
 
-        try {
-            $affected = $this->service->bulkUpsert($rows);
-            return response()->json($this->out->successFormat(['affected' => $affected], '批次儲存成功'));
-        } catch (\Throwable $e) {
-            Log::error('EarthData 批次儲存失敗', ['error' => $e->getMessage()]);
-            return response()->json($this->out->failFormat('批次儲存失敗: ' . $e->getMessage(), [], 500));
-        }
-    }
+            $data   = $request->all();
+            $userId = auth('api')->check() ? auth('api')->id() : null;
+            if ($userId) {
+                $data['created_by'] = $userId;
+                $data['updated_by'] = $userId;
+            }
 
-    public function bulkDelete(Request $request): JsonResponse
-    {
-        $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return response()->json($this->out->failFormat('請提供要刪除的 ID 陣列', [], 422));
-        }
+            $item = $this->service->createEarthData($data);
 
-        try {
-            $deleted = $this->service->bulkDelete($ids);
-            return response()->json($this->out->successFormat(['deleted' => $deleted], '批次刪除成功'));
-        } catch (\Throwable $e) {
-            Log::error('EarthData 批次刪除失敗', ['error' => $e->getMessage()]);
-            return response()->json($this->out->failFormat('批次刪除失敗: ' . $e->getMessage(), [], 500));
+            return response()->json($this->apiOutput->successFormat($item, '土單資料建立成功'), 201);
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('建立土單資料失敗：' . $e->getMessage(), [], 500));
         }
     }
 
+    /**
+     * 取得單筆土單資料或欄位預設
+     */
     public function show(int $id): JsonResponse
     {
-        // schema for id=0 only for now
-        if ($id === 0) {
-            $schema = [];
-            foreach (EarthData::FILLABLE as $field) {
-                $schema[$field] = EarthData::ATTRIBUTES[$field] ?? null;
+        try {
+            if ($id === 0) {
+                $schema = [];
+                foreach (EarthData::FILLABLE as $field) {
+                    $schema[$field] = EarthData::ATTRIBUTES[$field] ?? null;
+                }
+                return response()->json($this->apiOutput->successFormat($schema, '土單欄位預設值'));
             }
-            return response()->json($this->out->successFormat($schema, '土單資料欄位預設值'));
-        }
 
-        // non-schema fetch is not defined yet (excel sheet operates in bulk). Return 404
-        return response()->json($this->out->failFormat('不支援單筆查詢，請使用列表或批次 API', [], 404));
+            $item = $this->service->getEarthData($id);
+            if (! $item) {
+                return response()->json($this->apiOutput->failFormat('土單資料不存在', [], 404));
+            }
+
+            return response()->json($this->apiOutput->successFormat($item, '土單資料取得成功'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('取得土單資料失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 更新土單資料
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'batch_no'        => 'sometimes|required|string|max:255',
+                'cleaner_id'      => 'nullable|integer',
+                'project_name'    => 'nullable|string|max:255',
+                'flow_control_no' => 'nullable|string|max:255',
+                'issue_date'      => 'nullable|date',
+                'issue_count'     => 'nullable|integer|min:0',
+                'customer_id'     => 'nullable|integer|exists:customers,id',
+                'valid_date_from' => 'nullable|date',
+                'valid_date_to'   => 'nullable|date|after_or_equal:valid_date_from',
+                'carry_qty'       => 'nullable|numeric|min:0',
+                'carry_soil_type' => 'nullable|string|max:255',
+                'status_desc'     => 'nullable|string|max:500',
+                'remark_desc'     => 'nullable|string|max:1000',
+                'sys_serial_no'   => 'nullable|string|max:255',
+                'status'          => 'nullable|in:active,inactive',
+                'created_by'      => 'nullable|integer',
+                'updated_by'      => 'nullable|integer',
+            ], [
+                'batch_no.required' => '批號為必填欄位',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
+            }
+
+            $data   = $request->all();
+            $userId = auth('api')->check() ? auth('api')->id() : null;
+            if ($userId) {
+                $data['updated_by'] = $userId;
+            }
+
+            $item = $this->service->updateEarthData($id, $data);
+
+            return response()->json($this->apiOutput->successFormat($item, '土單資料更新成功'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('更新土單資料失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 刪除土單資料
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        try {
+            $deleted = $this->service->deleteEarthData($id);
+
+            if (! $deleted) {
+                return response()->json($this->apiOutput->failFormat('土單資料不存在或刪除失敗', [], 404));
+            }
+
+            return response()->json($this->apiOutput->successFormat(null, '土單資料刪除成功'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('刪除土單資料失敗：' . $e->getMessage(), [], 500));
+        }
     }
 }
