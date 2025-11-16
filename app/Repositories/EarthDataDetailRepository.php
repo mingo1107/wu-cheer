@@ -60,6 +60,106 @@ class EarthDataDetailRepository extends BaseRepository
     }
 
     /**
+     * 根據 barcode 取得明細
+     *
+     * @param string $barcode
+     * @return EarthDataDetail|null
+     */
+    public function findByBarcode(string $barcode): ?EarthDataDetail
+    {
+        return $this->model->newQuery()
+            ->where('barcode', $barcode)
+            ->first();
+    }
+
+    /**
+     * 核銷明細（根據 barcode）
+     *
+     * @param string $barcode
+     * @param int $verifierId 核銷人員 ID（verifiers 表）
+     * @return array|null 返回更新後的明細資料，失敗返回 null
+     */
+    public function verifyByBarcode(string $barcode, int $verifierId): ?array
+    {
+        $detail = $this->findByBarcode($barcode);
+        
+        if (!$detail) {
+            return null;
+        }
+
+        // 檢查是否已經核銷
+        if ($detail->status === EarthDataDetail::STATUS_USED && $detail->verified_at !== null) {
+            return [
+                'success' => false,
+                'message' => '此 barcode 已核銷',
+                'detail' => $detail
+            ];
+        }
+
+        // 檢查狀態是否可核銷（必須是已列印狀態）
+        if ($detail->status !== EarthDataDetail::STATUS_PRINTED) {
+            return [
+                'success' => false,
+                'message' => '此 barcode 狀態不允許核銷（必須為已列印狀態）',
+                'detail' => $detail
+            ];
+        }
+
+        // 執行核銷
+        $updated = $detail->update([
+            'status' => EarthDataDetail::STATUS_USED,
+            'verified_at' => now(),
+            'verified_by' => $verifierId, // 注意：這裡儲存的是 verifier_id，但欄位名稱是 verified_by
+        ]);
+
+        if (!$updated) {
+            return null;
+        }
+
+        // 重新載入資料
+        $detail->refresh();
+
+        return [
+            'success' => true,
+            'message' => '核銷成功',
+            'detail' => $detail
+        ];
+    }
+
+    /**
+     * 批量核銷（根據 barcode 列表）
+     *
+     * @param array $barcodes barcode 陣列
+     * @param int $verifierId 核銷人員 ID
+     * @return array 返回結果統計
+     */
+    public function batchVerifyByBarcodes(array $barcodes, int $verifierId): array
+    {
+        $results = [
+            'total' => count($barcodes),
+            'success' => 0,
+            'failed' => 0,
+            'errors' => []
+        ];
+
+        foreach ($barcodes as $barcode) {
+            $result = $this->verifyByBarcode($barcode, $verifierId);
+            
+            if ($result && $result['success']) {
+                $results['success']++;
+            } else {
+                $results['failed']++;
+                $results['errors'][] = [
+                    'barcode' => $barcode,
+                    'message' => $result['message'] ?? '核銷失敗'
+                ];
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * 取得指定工程的使用明細（含核銷人員姓名）
      *
      * @param int $earthDataId
@@ -71,6 +171,7 @@ class EarthDataDetailRepository extends BaseRepository
         $query = $this->model->newQuery()
             ->from($this->model->getTable() . ' as d')
             ->leftJoin('users as u', 'u.id', '=', 'd.verified_by')
+            ->leftJoin('verifiers as v', 'v.id', '=', 'd.verified_by')
             ->where('d.earth_data_id', $earthDataId);
         
         // 狀態篩選
@@ -88,7 +189,7 @@ class EarthDataDetailRepository extends BaseRepository
                 'd.print_at',
                 'd.verified_at',
                 'd.verified_by',
-                DB::raw('u.name as verified_by_name'),
+                DB::raw('COALESCE(u.name, v.name) as verified_by_name'),
                 'd.created_at',
             ]);
     }

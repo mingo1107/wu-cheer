@@ -108,15 +108,6 @@
                   已選擇 <span class="font-semibold text-amber-600">{{ selectedDetailIds.length }}</span> 筆
                 </div>
                 <button
-                  @click="printSelected"
-                  :disabled="selectedDetailIds.length === 0"
-                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  title="列印選中的明細"
-                >
-                  <i class="fas fa-print mr-2"></i>
-                  列印
-                </button>
-                <button
                   @click="submitBatchAction"
                   :disabled="!batchAction || selectedDetailIds.length === 0 || submittingBatch"
                   class="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -199,10 +190,20 @@
                   </td>
                   <td class="px-3 py-2">{{ formatDateTimeShort(d.created_at) }}</td>
                   <td class="px-3 py-2">
-                    <span v-if="d.status === 3" class="text-xs text-gray-400">已作廢</span>
-                    <span v-else-if="d.status === 4" class="text-xs text-gray-400">已回收</span>
-                    <span v-else-if="d.status === 2" class="text-xs text-gray-400">已核銷</span>
-                    <span v-else class="text-xs text-gray-400">-</span>
+                    <button
+                      v-if="d.status !== 3 && d.status !== 4 && d.status !== 2"
+                      @click="openPrint(selected.id)"
+                      class="action-btn action-btn--print"
+                      title="列印未列印"
+                    >
+                      <i class="fas fa-print action-icon"></i>
+                    </button>
+                    <span v-else class="text-xs text-gray-400">
+                      <span v-if="d.status === 3">已作廢</span>
+                      <span v-else-if="d.status === 4">已回收</span>
+                      <span v-else-if="d.status === 2">已核銷</span>
+                      <span v-else>-</span>
+                    </span>
                   </td>
                 </tr>
                 <tr v-if="details.length === 0">
@@ -215,6 +216,14 @@
       </div>
     </div>
     <Toast />
+    <!-- Print Dialog -->
+    <PrintDialog
+      v-model="showPrintModal"
+      :totals="printTotals"
+      :loading="loadingPrintTotals"
+      v-model:count="printCount"
+      @submit="submitPrint"
+    />
   </div>
 </template>
 
@@ -224,6 +233,7 @@ import earthDataAPI from '../api/earthData.js'
 import commonAPI from '../api/common.js'
 import { useToast } from '../composables/useToast.js'
 import Toast from '../components/Toast.vue'
+import PrintDialog from '../components/PrintDialog.vue'
 import { formatDate, formatDateTime, formatDateTimeShort} from '../utils/date.js'
 
 const { success, error } = useToast()
@@ -243,6 +253,13 @@ const batchAction = ref('')
 const batchUseStartDate = ref('')
 const batchUseEndDate = ref('')
 const submittingBatch = ref(false)
+
+// print dialog state
+const showPrintModal = ref(false)
+const printTargetId = ref(null)
+const printTotals = ref({ total: 0, verified: 0, pending: 0 })
+const printCount = ref(1)
+const loadingPrintTotals = ref(false)
 
 let datalistTimer = null
 const debouncedLoadDatalist = () => {
@@ -355,22 +372,59 @@ const toggleSelectAll = () => {
   }
 }
 
-// 列印選中的明細
-const printSelected = () => {
-  if (!selected.value?.id) return
-  if (selectedDetailIds.value.length === 0) {
-    error('請選擇要列印的明細')
+// 開啟列印對話框：顯示統計與輸入本次列印數量
+const openPrint = async (earthDataId) => {
+  if (!earthDataId) return
+  printTargetId.value = earthDataId
+  printCount.value = 1
+  printTotals.value = { total: 0, verified: 0, pending: 0 }
+  showPrintModal.value = true
+  loadingPrintTotals.value = true
+  try {
+    const resp = await earthDataAPI.usageStats(earthDataId)
+    if (resp.status) {
+      const totals = resp.data?.totals || {}
+      const t = Number(totals.total ?? 0)
+      const v = Number(totals.verified ?? 0)
+      const p = Math.max(0, t - v)
+      printTotals.value = { total: t, verified: v, pending: p }
+      // clamp default
+      if (printCount.value > p) printCount.value = p || 1
+    } else {
+      error(resp.message || '取得統計失敗')
+    }
+  } catch (e) {
+    error(e.message || '取得統計失敗')
+  } finally {
+    loadingPrintTotals.value = false
+  }
+}
+
+const closePrintModal = () => {
+  showPrintModal.value = false
+  printTargetId.value = null
+}
+
+const submitPrint = () => {
+  const pending = Number(printTotals.value.pending || 0)
+  let count = Number(printCount.value || 0)
+  if (!printTargetId.value) return
+  if (!Number.isFinite(count) || count <= 0) {
+    error('請輸入正確的列印數量')
     return
   }
-
-  // 構建 URL，將 detail_ids 作為查詢參數傳遞
-  const detailIdsParam = selectedDetailIds.value.join(',')
-  const url = `/print/earth-data/${selected.value.id}/selected?detail_ids=${detailIdsParam}`
+  if (count > pending) {
+    error(`本次列印數量不可超過未印數量（${pending}）`)
+    return
+  }
+  const url = `/print/earth-data/${printTargetId.value}/pending?count=${count}`
   window.open(url, '_blank')
-  
+  closePrintModal()
   // 列印後重新載入明細以更新狀態
   setTimeout(() => {
-    loadDetails(selected.value.id)
+    if (selected.value?.id) {
+      loadDetails(selected.value.id)
+    }
   }, 1000)
 }
 

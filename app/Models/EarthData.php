@@ -73,4 +73,12 @@ class EarthData extends Model
         return $this->belongsToMany(Cleaner::class, 'earth_data_cleaners', 'earth_data_id', 'cleaner_id')
             ->withTimestamps();
     }
+
+    /**
+     * 一對多關聯：土單明細
+     */
+    public function details()
+    {
+        return $this->hasMany(EarthDataDetail::class, 'earth_data_id');
+    }
 }

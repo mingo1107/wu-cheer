@@ -106,6 +106,11 @@
                       <span>{{ item.issue_count ?? 0 }}</span>
                       <button @click="openAdjustModal(item)" class="btn-adjust" title="調整張數">調整</button>
                     </div>
+                    <div v-if="item.voided_count || item.recycled_count" class="text-xs text-gray-500 mt-1">
+                      <span v-if="item.voided_count">作廢：{{ item.voided_count }}</span>
+                      <span v-if="item.voided_count && item.recycled_count" class="mx-1">/</span>
+                      <span v-if="item.recycled_count">回收：{{ item.recycled_count }}</span>
+                    </div>
                   </td>
                   <td class="td-base">{{ item.customer_name || '-' }}</td>
                   <td class="td-base">

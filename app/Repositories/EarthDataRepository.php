@@ -28,7 +28,15 @@ class EarthDataRepository extends BaseRepository
                 'uu.name as updated_by_name',
                 'cust.customer_name as customer_name'
             )
-            ->with('cleaners'); // 載入多對多關聯
+            ->with('cleaners') // 載入多對多關聯
+            ->withCount([
+                'details as voided_count' => function ($q) {
+                    $q->where('status', \App\Models\EarthDataDetail::STATUS_VOIDED);
+                },
+                'details as recycled_count' => function ($q) {
+                    $q->where('status', \App\Models\EarthDataDetail::STATUS_RECYCLED);
+                }
+            ]);
 
         if (Auth::guard('api')->check() && isset(Auth::guard('api')->user()->company_id)) {
             $query->where($table . '.company_id', Auth::guard('api')->user()->company_id);

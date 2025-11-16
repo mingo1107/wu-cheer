@@ -5,8 +5,11 @@
 import axios from 'axios';
 
 class BaseAPI {
-    constructor() {
-        this.baseURL = '/api';
+    constructor(options = {}) {
+        this.baseURL = options.baseURL || '/api';
+        this.tokenKey = options.tokenKey || 'token'; // 預設使用 'token'
+        this.userKey = options.userKey || 'user'; // 預設使用 'user'
+        
         this.instance = axios.create({
             baseURL: this.baseURL,
             timeout: 10000,
@@ -37,8 +40,8 @@ class BaseAPI {
         // 請求攔截器
         this.instance.interceptors.request.use(
             (config) => {
-                // 添加 JWT token
-                const token = localStorage.getItem('token');
+                // 添加 JWT token（使用配置的 token key）
+                const token = localStorage.getItem(this.tokenKey);
                 if (token) {
                     config.headers['Authorization'] = `Bearer ${token}`;
                 }
@@ -78,13 +81,15 @@ class BaseAPI {
             switch (status) {
                 case 401:
                     console.log('未授權，需要重新登入');
-                    console.log('localStorage user:', localStorage.getItem('user'));
-                    // 清除本地儲存的使用者資料和 token
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('token');
+                    console.log(`localStorage ${this.userKey}:`, localStorage.getItem(this.userKey));
+                    // 清除本地儲存的使用者資料和 token（使用配置的 key）
+                    localStorage.removeItem(this.userKey);
+                    localStorage.removeItem(this.tokenKey);
                     // 使用回調函數進行路由跳轉
                     if (this.redirectCallback) {
-                        this.redirectCallback('/login');
+                        // 根據 token key 決定跳轉路徑
+                        const loginPath = this.tokenKey === 'verifier_token' ? '/verifier/login' : '/login';
+                        this.redirectCallback(loginPath);
                     }
                     break;
                 case 403:
@@ -114,12 +119,14 @@ class BaseAPI {
      */
     redirectToLogin() {
         console.log('重導向到登入頁面');
-        // 清除本地儲存的使用者資料和 token
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        // 清除本地儲存的使用者資料和 token（使用配置的 key）
+        localStorage.removeItem(this.userKey);
+        localStorage.removeItem(this.tokenKey);
         // 使用回調函數進行路由跳轉
         if (this.redirectCallback) {
-            this.redirectCallback('/login');
+            // 根據 token key 決定登入頁面路徑
+            const loginPath = this.tokenKey === 'verifier_token' ? '/verifier/login' : '/login';
+            this.redirectCallback(loginPath);
         }
     }
 
