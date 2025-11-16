@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .action-buttons { @apply flex items-center gap-4 sm:gap-5; }
+  .action-btn { @apply p-2.5 rounded-lg transition-colors duration-200; }
+  .action-btn--edit { @apply text-amber-600 hover:text-amber-900 hover:bg-amber-50; }
+  .action-btn--delete { @apply text-red-600 hover:text-red-900 hover:bg-red-50; }
+  .action-btn--print { @apply text-blue-600 hover:text-blue-900 hover:bg-blue-50; }
+  .action-icon { @apply text-xl; }
+  .td-base { @apply px-8 py-4 whitespace-nowrap text-sm text-gray-900; }
+}

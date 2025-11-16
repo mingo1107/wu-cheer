@@ -91,23 +91,23 @@
                   </td>
                 </tr>
                 <tr v-else v-for="it in items" :key="it.id" class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ it.cleaner_name }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ it.contact_person }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ it.phone }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ it.tax_id || '-' }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="td-base font-medium">{{ it.cleaner_name }}</td>
+                  <td class="td-base">{{ it.contact_person }}</td>
+                  <td class="td-base">{{ it.phone }}</td>
+                  <td class="td-base">{{ it.tax_id || '-' }}</td>
+                  <td class="td-base">
                     <span :class="it.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
                       {{ it.status === 'active' ? '活躍' : '停用' }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(it.created_at) }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                      <button @click="openEdit(it)" class="text-amber-600 hover:text-amber-900" title="編輯">
-                        <i class="fas fa-edit"></i>
+                  <td class="td-base text-gray-500">{{ formatDate(it.created_at) }}</td>
+                  <td class="td-base font-medium">
+                    <div class="action-buttons">
+                      <button @click="openEdit(it)" class="action-btn action-btn--edit" title="編輯">
+                        <i class="fas fa-edit action-icon"></i>
                       </button>
-                      <button @click="openDelete(it)" class="text-red-600 hover:text-red-900" title="刪除">
-                        <i class="fas fa-trash"></i>
+                      <button @click="openDelete(it)" class="action-btn action-btn--delete" title="刪除">
+                        <i class="fas fa-trash action-icon"></i>
                       </button>
                     </div>
                   </td>

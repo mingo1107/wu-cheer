@@ -2,8 +2,8 @@
 namespace App\Services;
 
 use App\Models\EarthData;
-use App\Repositories\EarthDataRepository;
 use App\Repositories\EarthDataDetailRepository;
+use App\Repositories\EarthDataRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -95,7 +95,6 @@ class EarthDataService
         }
     }
 
-
     // add/remove detail rows and update issue_count atomically
     public function adjustDetails(int $earthDataId, string $action, int $count): array
     {
@@ -107,12 +106,12 @@ class EarthDataService
         $affected = 0;
         DB::transaction(function () use (&$affected, $action, $count, $earthData) {
             if ($action === 'add') {
-                $affected = $this->detailRepo->addDetails($earthData->id, (string)($earthData->flow_control_no ?? ''), $count);
+                $affected = $this->detailRepo->addDetails($earthData->id, (string) ($earthData->flow_control_no ?? ''), $count);
                 $earthData->increment('issue_count', $affected);
             } else {
                 $affected = $this->detailRepo->removeDetails($earthData->id, $count);
                 if ($affected > 0) {
-                    $newCount = max(0, (int)$earthData->issue_count - $affected);
+                    $newCount               = max(0, (int) $earthData->issue_count - $affected);
                     $earthData->issue_count = $newCount;
                     $earthData->save();
                 }
@@ -120,8 +119,34 @@ class EarthDataService
         });
 
         return [
-            'affected' => $affected,
+            'affected'    => $affected,
             'issue_count' => (int) $earthData->issue_count,
         ];
+    }
+
+    /**
+     * 取得未列印的明細
+     */
+    public function getUnprintedDetails(int $earthDataId, ?int $limit = null)
+    {
+        try {
+            return $this->detailRepo->getUnprintedDetails($earthDataId, $limit);
+        } catch (\Exception $e) {
+            Log::error('取得未列印明細失敗', ['error' => $e->getMessage(), 'earth_data_id' => $earthDataId]);
+            throw $e;
+        }
+    }
+
+    /**
+     * 標記明細為已列印
+     */
+    public function markAsPrinted(array $ids): int
+    {
+        try {
+            return $this->detailRepo->markPrinted($ids);
+        } catch (\Exception $e) {
+            Log::error('標記明細為已列印失敗', ['error' => $e->getMessage(), 'ids' => $ids]);
+            throw $e;
+        }
     }
 }

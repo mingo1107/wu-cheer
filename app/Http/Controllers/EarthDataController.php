@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 use App\Formatters\ApiOutput;
 use App\Models\EarthData;
 use App\Services\EarthDataService;
-use App\Services\EarthPrintService;
 // repositories should be consumed via services per project conventions
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,14 +11,10 @@ use Illuminate\Support\Facades\Validator;
 
 class EarthDataController extends Controller
 {
-    protected EarthDataService $service;
-    protected ApiOutput $apiOutput;
-
-    public function __construct(EarthDataService $service, ApiOutput $apiOutput)
-    {
-        $this->service   = $service;
-        $this->apiOutput = $apiOutput;
-    }
+    public function __construct(
+        private readonly EarthDataService $service,
+        private readonly ApiOutput $apiOutput
+    ) {}
 
     /**
      * 取得土單資料列表
@@ -208,24 +203,22 @@ class EarthDataController extends Controller
     /**
      * 列印：將指定工程尚未列印的明細一次輸出並標記為已列印
      */
-    public function printPending(Request $request, int $id, EarthPrintService $printService)
+    public function printPending(Request $request, int $id)
     {
-        $earth = $printService->getEarthData($id);
+        $earth = $this->service->getEarthData($id);
         if (! $earth) {
             abort(404, '土單資料不存在');
         }
 
         // 權限：限定同公司
-        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
-            if ((int) $earth->company_id !== (int) auth('api')->user()->company_id) {
-                abort(403, '無權限存取');
-            }
-        }
+        $this->assertSameCompany($earth->company_id);
 
-        $details = $printService->getUnprintedDetails($earth->id);
+        $limit   = $request->integer('count');
+        if (! is_null($limit) && $limit <= 0) { $limit = null; }
+        $details = $this->service->getUnprintedDetails($earth->id, $limit);
         $ids     = $details->pluck('id')->all();
         if (! empty($ids)) {
-            $printService->markAsPrinted($ids);
+            $this->service->markAsPrinted($ids);
         }
 
         return view('print.earth_ticket', [

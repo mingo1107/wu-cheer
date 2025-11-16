@@ -92,7 +92,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                   <tr v-for="user in dataList" :key="user?.id || Math.random()" class="hover:bg-gray-50" v-if="dataList">
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="td-base">
                       <div class="flex items-center">
                         <div class="flex-shrink-0 h-10 w-10">
                           <div class="h-10 w-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center">
@@ -104,10 +104,10 @@
                         </div>
                       </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="td-base">
                       <div class="text-sm text-gray-900">{{ user.email || '未知郵件' }}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="td-base">
                       <span v-if="user.email_verified_at" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                         已驗證
                       </span>
@@ -115,26 +115,26 @@
                         未驗證
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="td-base text-gray-500">
                       {{ formatDate(user.created_at) }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div class="flex space-x-3">
+                    <td class="td-base font-medium">
+                      <div class="action-buttons">
                         <button
                           @click="openEditModal(user)"
-                          class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200 p-2 rounded-lg hover:bg-indigo-50"
+                          class="action-btn action-btn--edit"
                           :disabled="!user?.id"
                           title="編輯使用者"
                         >
-                          <i class="fas fa-edit text-lg"></i>
+                          <i class="fas fa-edit action-icon"></i>
                         </button>
                         <button
                           @click="confirmDelete(user)"
-                          class="text-red-600 hover:text-red-900 transition-colors duration-200 p-2 rounded-lg hover:bg-red-50"
+                          class="action-btn action-btn--delete"
                           :disabled="!user?.id"
                           title="刪除使用者"
                         >
-                          <i class="fas fa-trash-alt text-lg"></i>
+                          <i class="fas fa-trash action-icon"></i>
                         </button>
                       </div>
                     </td>

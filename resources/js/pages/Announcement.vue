@@ -50,23 +50,27 @@
                   <td colspan="5" class="px-6 py-8 text-center text-gray-500">沒有公告資料</td>
                 </tr>
                 <tr v-else v-for="it in items" :key="it.id" class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="td-base">
                     <div class="text-sm font-medium text-gray-900">{{ it.title }}</div>
                     <div v-if="it.content" class="text-sm text-gray-500 truncate max-w-xl">{{ it.content }}</div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td class="td-base">
                     {{ formatDateTime(it.starts_at) }} ~ {{ formatDateTime(it.ends_at) }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="td-base">
                     <span :class="it.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
                       {{ it.is_active ? '啟用' : '停用' }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDateTime(it.updated_at) }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex gap-2">
-                      <button @click="openEdit(it)" class="text-amber-600 hover:text-amber-900"><i class="fas fa-edit"></i></button>
-                      <button @click="confirmDelete(it)" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+                  <td class="td-base text-gray-500">{{ formatDateTime(it.updated_at) }}</td>
+                  <td class="td-base font-medium">
+                    <div class="action-buttons">
+                      <button @click="openEdit(it)" class="action-btn action-btn--edit" title="編輯">
+                        <i class="fas fa-edit action-icon"></i>
+                      </button>
+                      <button @click="confirmDelete(it)" class="action-btn action-btn--delete" title="刪除">
+                        <i class="fas fa-trash action-icon"></i>
+                      </button>
                     </div>
                   </td>
                 </tr>

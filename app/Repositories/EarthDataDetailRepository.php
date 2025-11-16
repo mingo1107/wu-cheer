@@ -2,8 +2,8 @@
 namespace App\Repositories;
 
 use App\Models\EarthDataDetail;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class EarthDataDetailRepository extends BaseRepository
 {
@@ -15,9 +15,9 @@ class EarthDataDetailRepository extends BaseRepository
     public function generateBarcode(string $flowControlNo): string
     {
         do {
-            $random = Str::upper(Str::random(10));
+            $random  = Str::upper(Str::random(10));
             $barcode = $flowControlNo . $random;
-            $exists = $this->model->newQuery()->where('barcode', $barcode)->exists();
+            $exists  = $this->model->newQuery()->where('barcode', $barcode)->exists();
         } while ($exists);
 
         return $barcode;
@@ -26,7 +26,7 @@ class EarthDataDetailRepository extends BaseRepository
     public function addDetails(int $earthDataId, string $flowControlNo, int $count): int
     {
         $rows = [];
-        $now = now();
+        $now  = now();
         for ($i = 0; $i < $count; $i++) {
             $rows[] = [
                 'earth_data_id' => $earthDataId,
@@ -49,7 +49,9 @@ class EarthDataDetailRepository extends BaseRepository
                 ->limit($count)
                 ->pluck('id');
 
-            if ($ids->isEmpty()) return 0;
+            if ($ids->isEmpty()) {
+                return 0;
+            }
 
             return $this->model->newQuery()->whereIn('id', $ids)->delete();
         });
@@ -77,18 +79,19 @@ class EarthDataDetailRepository extends BaseRepository
     }
 
     /**
-     * 取得總數量、已核銷、待使用
+     * 取得總數量、已印數量、未印數量
      */
     public function getTotals(int $earthDataId): array
     {
-        $base = $this->model->newQuery()->where('earth_data_id', $earthDataId);
-        $total = (clone $base)->count();
-        $verified = (clone $base)->whereNotNull('verified_at')->count();
-        $pending = max(0, $total - $verified);
+        $base     = $this->model->newQuery()->where('earth_data_id', $earthDataId);
+        $total    = (clone $base)->count();
+        $printed  = (clone $base)->whereNotNull('print_at')->count();
+        $pending  = max(0, $total - $printed);
         return [
-            'total' => (int)$total,
-            'verified' => (int)$verified,
-            'pending' => (int)$pending,
+            'total'    => (int) $total,
+            // 與前端相容：維持 verified 鍵名，但數值代表「已印數量」
+            'verified' => (int) $printed,
+            'pending'  => (int) $pending,
         ];
     }
 
@@ -106,21 +109,24 @@ class EarthDataDetailRepository extends BaseRepository
             ->get();
 
         return $rows->map(fn($r) => [
-            'day' => (string)$r->day,
-            'count' => (int)$r->cnt,
+            'day'   => (string) $r->day,
+            'count' => (int) $r->cnt,
         ])->all();
     }
 
     /**
      * 取得未列印的明細
      */
-    public function getUnprintedDetails(int $earthDataId)
+    public function getUnprintedDetails(int $earthDataId, ?int $limit = null)
     {
-        return $this->model->newQuery()
+        $q = $this->model->newQuery()
             ->where('earth_data_id', $earthDataId)
             ->whereNull('print_at')
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        if (! is_null($limit) && $limit > 0) {
+            $q->limit($limit);
+        }
+        return $q->get();
     }
 
     /**
@@ -128,7 +134,10 @@ class EarthDataDetailRepository extends BaseRepository
      */
     public function markPrinted(array $ids): int
     {
-        if (empty($ids)) return 0;
+        if (empty($ids)) {
+            return 0;
+        }
+
         return $this->model->newQuery()->whereIn('id', $ids)->update(['print_at' => now()]);
     }
 }

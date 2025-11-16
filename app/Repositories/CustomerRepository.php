@@ -202,3 +202,4 @@ class CustomerRepository extends BaseRepository
         return $query->orderBy('customer_name')->get(['id', 'customer_name']);
     }
 }
+

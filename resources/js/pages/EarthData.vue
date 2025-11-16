@@ -62,24 +62,24 @@
             <table class="min-w-full table-auto divide-y divide-gray-200">
               <thead class="bg-gradient-to-r from-amber-50 to-orange-50">
                 <tr>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">批號</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[160px]">工程名稱</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[140px]">管制編號</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">開立日期</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">開立張數</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">客戶</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">清運業者</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]">有效起</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]">有效迄</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">載運數量</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">載運土質</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[160px]">狀態說明</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[160px]">備註說明</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">建檔人員</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[110px]">修改人員</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[140px]">系統流水號</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[90px]">狀態</th>
-                  <th class="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]">操作</th>
+                  <th class="th-base min-w-[120px]">批號</th>
+                  <th class="th-base min-w-[160px]">工程名稱</th>
+                  <th class="th-base min-w-[140px]">管制編號</th>
+                  <th class="th-base min-w-[120px]">開立日期</th>
+                  <th class="th-base min-w-[110px]">開立張數</th>
+                  <th class="th-base min-w-[120px]">客戶</th>
+                  <th class="th-base min-w-[110px]">清運業者</th>
+                  <th class="th-base min-w-[100px]">有效起</th>
+                  <th class="th-base min-w-[100px]">有效迄</th>
+                  <th class="th-base min-w-[110px]">載運數量</th>
+                  <th class="th-base min-w-[120px]">載運土質</th>
+                  <th class="th-base min-w-[160px]">狀態說明</th>
+                  <th class="th-base min-w-[160px]">備註說明</th>
+                  <th class="th-base min-w-[110px]">建檔人員</th>
+                  <th class="th-base min-w-[110px]">修改人員</th>
+                  <th class="th-base min-w-[140px]">系統流水號</th>
+                  <th class="th-base min-w-[90px]">狀態</th>
+                  <th class="th-base min-w-[100px]">操作</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -97,23 +97,23 @@
                   </td>
                 </tr>
                 <tr v-else v-for="item in rows" :key="item.id" class="hover:bg-gray-50 transition-colors duration-200">
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.batch_no }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900 truncate max-w-[20rem]" :title="item.project_name">{{ item.project_name }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.flow_control_no }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.issue_date) }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td class="td-base">{{ item.batch_no }}</td>
+                  <td class="td-base truncate max-w-[20rem]" :title="item.project_name">{{ item.project_name }}</td>
+                  <td class="td-base">{{ item.flow_control_no }}</td>
+                  <td class="td-base">{{ formatDate(item.issue_date) }}</td>
+                  <td class="td-base">
                     <div class="flex items-center gap-2">
                       <span>{{ item.issue_count ?? 0 }}</span>
                       <button @click="openAdjustModal(item)" class="px-2 py-1 text-xs rounded bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100" title="調整張數">調整</button>
                     </div>
                   </td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.customer_name || '-' }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.cleaner_name }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.valid_date_from) }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.valid_date_to) }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.carry_qty }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.carry_soil_type }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900 truncate max-w-[20rem]" :title="item.status_desc">
+                  <td class="td-base">{{ item.customer_name || '-' }}</td>
+                  <td class="td-base">{{ item.cleaner_name }}</td>
+                  <td class="td-base">{{ formatDate(item.valid_date_from) }}</td>
+                  <td class="td-base">{{ formatDate(item.valid_date_to) }}</td>
+                  <td class="td-base">{{ item.carry_qty }}</td>
+                  <td class="td-base">{{ item.carry_soil_type }}</td>
+                  <td class="td-base truncate max-w-[20rem]" :title="item.status_desc">
                     <input
                       v-if="editing[item.id]"
                       v-model="editing[item.id].status_desc"
@@ -123,7 +123,7 @@
                     />
                     <span v-else>{{ item.status_desc }}</span>
                   </td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900 truncate max-w-[20rem]" :title="item.remark_desc">
+                  <td class="td-base truncate max-w-[20rem]" :title="item.remark_desc">
                     <input
                       v-if="editing[item.id]"
                       v-model="editing[item.id].remark_desc"
@@ -133,20 +133,20 @@
                     />
                     <span v-else>{{ item.remark_desc }}</span>
                   </td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.created_by_name }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.updated_by_name }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.sys_serial_no }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.status }}</td>
-                  <td class="px-8 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                      <button @click="openEditModal(item)" class="text-amber-600 hover:text-amber-900 transition-colors duration-200" title="編輯">
-                        <i class="fas fa-edit"></i>
+                  <td class="td-base">{{ item.created_by_name }}</td>
+                  <td class="td-base">{{ item.updated_by_name }}</td>
+                  <td class="td-base">{{ item.sys_serial_no }}</td>
+                  <td class="td-base">{{ item.status }}</td>
+                  <td class="td-base font-medium">
+                    <div class="action-buttons">
+                      <button @click="openEditModal(item)" class="action-btn action-btn--edit" title="編輯">
+                        <i class="fas fa-edit action-icon"></i>
                       </button>
-                      <button @click="openDeleteModal(item)" class="text-red-600 hover:text-red-900 transition-colors duration-200" title="刪除">
-                        <i class="fas fa-trash"></i>
+                      <button @click="openDeleteModal(item)" class="action-btn action-btn--delete" title="刪除">
+                        <i class="fas fa-trash action-icon"></i>
                       </button>
-                      <button @click="openPrint(item)" class="text-blue-600 hover:text-blue-900 transition-colors duration-200" title="列印未列印">
-                        <i class="fas fa-print"></i>
+                      <button @click="openPrint(item)" class="action-btn action-btn--print" title="列印未列印">
+                        <i class="fas fa-print action-icon"></i>
                       </button>
                     </div>
                   </td>
@@ -323,9 +323,28 @@
               </label>
             </div>
           </div>
+          <div class="text-sm text-gray-700 space-y-1">
+            <div v-if="loadingAdjustTotals" class="text-gray-500 flex items-center gap-2">
+              <i class="fas fa-spinner fa-spin"></i>
+              讀取統計中...
+            </div>
+            <template v-else>
+              <div>總張數：<span class="font-semibold">{{ adjustTotals?.total ?? 0 }}</span></div>
+              <div>已印數量：<span class="font-semibold">{{ adjustTotals?.verified ?? 0 }}</span></div>
+              <div>未印張數：<span class="font-semibold">{{ adjustTotals?.pending ?? 0 }}</span></div>
+            </template>
+          </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">數量</label>
-            <input type="number" min="1" v-model.number="adjustCount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+            <input
+              type="number"
+              min="1"
+              :max="adjustAction === 'remove' ? (adjustTotals?.pending || 0) : null"
+              v-model.number="adjustCount"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+            <p v-if="adjustAction === 'remove' && Number(adjustCount) > (adjustTotals?.pending || 0)" class="text-red-600 text-xs mt-1">
+              減少數量不可超過未印張數（{{ adjustTotals?.pending || 0 }}）
+            </p>
           </div>
         </div>
         <div class="mt-5 flex justify-end gap-3">
@@ -338,10 +357,19 @@
       </div>
     </div>
   </div>
+  <!-- Print Dialog -->
+  <PrintDialog
+    v-model="showPrintModal"
+    :totals="printTotals"
+    :loading="loadingPrintTotals"
+    v-model:count="printCount"
+    @submit="submitPrint"
+  />
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
+import PrintDialog from '@/components/PrintDialog.vue'
 import { useToast } from '@/composables/useToast'
 import earthDataAPI from '../api/earthData.js'
 import commonAPI from '../api/common.js'
@@ -369,6 +397,15 @@ const adjustTarget = ref(null)
 const adjustAction = ref('add')
 const adjustCount = ref(1)
 const submittingAdjust = ref(false)
+const adjustTotals = ref({ total: 0, verified: 0, pending: 0 })
+const loadingAdjustTotals = ref(false)
+
+// print dialog state
+const showPrintModal = ref(false)
+const printTarget = ref(null)
+const printTotals = ref({ total: 0, verified: 0, pending: 0 })
+const printCount = ref(1)
+const loadingPrintTotals = ref(false)
 
 // options for selects
 const cleanerOptions = ref([])
@@ -577,11 +614,23 @@ const closeDeleteModal = () => {
   itemToDelete.value = null
 }
 
-const openAdjustModal = (item) => {
+const openAdjustModal = async (item) => {
   adjustTarget.value = item
   adjustAction.value = 'add'
   adjustCount.value = 1
+  adjustTotals.value = { total: 0, verified: 0, pending: 0 }
   showAdjustModal.value = true
+  loadingAdjustTotals.value = true
+  try {
+    const resp = await earthDataAPI.usageStats(item.id)
+    if (resp.status) {
+      adjustTotals.value = resp.data?.totals || { total: 0, verified: 0, pending: 0 }
+    }
+  } catch (e) {
+    // ignore; keep zeros
+  } finally {
+    loadingAdjustTotals.value = false
+  }
 }
 
 const closeAdjustModal = () => {
@@ -593,6 +642,18 @@ const submitAdjust = async () => {
   if (!adjustTarget.value) return
   try {
     submittingAdjust.value = true
+    if (adjustAction.value === 'remove') {
+      const pending = Number(adjustTotals.value?.pending || 0)
+      const count = Number(adjustCount.value || 0)
+      if (!Number.isFinite(count) || count <= 0) {
+        showToast('請輸入正確的數量', 'error')
+        return
+      }
+      if (count > pending) {
+        showToast(`減少數量不可超過未印張數（${pending}）`, 'error')
+        return
+      }
+    }
     const resp = await earthDataAPI.adjustDetails(adjustTarget.value.id, {
       action: adjustAction.value,
       count: adjustCount.value
@@ -606,6 +667,14 @@ const submitAdjust = async () => {
         // fallback reload
         await loadEarthData(pagination.value?.current_page || 1)
       }
+      // 若有 totals，可嘗試本地更新
+      if (adjustAction.value === 'add') {
+        adjustTotals.value.total = Number(adjustTotals.value.total || 0) + Number(adjustCount.value || 0)
+        adjustTotals.value.pending = Number(adjustTotals.value.pending || 0) + Number(adjustCount.value || 0)
+      } else if (adjustAction.value === 'remove') {
+        adjustTotals.value.total = Math.max(0, Number(adjustTotals.value.total || 0) - Number(adjustCount.value || 0))
+        adjustTotals.value.pending = Math.max(0, Number(adjustTotals.value.pending || 0) - Number(adjustCount.value || 0))
+      }
       showToast('調整成功', 'success')
       closeAdjustModal()
     } else {
@@ -618,11 +687,54 @@ const submitAdjust = async () => {
   }
 }
 
-// 開啟列印頁：列印尚未列印的明細
-const openPrint = (item) => {
+// 開啟列印對話框：顯示統計與輸入本次列印數量
+const openPrint = async (item) => {
   if (!item || !item.id) return
-  const url = `/print/earth-data/${item.id}/pending`
+  printTarget.value = item
+  printCount.value = 1
+  printTotals.value = { total: 0, verified: 0, pending: 0 }
+  showPrintModal.value = true
+  loadingPrintTotals.value = true
+  try {
+    const resp = await earthDataAPI.usageStats(item.id)
+    if (resp.status) {
+      const totals = resp.data?.totals || {}
+      const t = Number(totals.total ?? 0)
+      const v = Number(totals.verified ?? 0)
+      const p = Math.max(0, t - v)
+      printTotals.value = { total: t, verified: v, pending: p }
+      // clamp default
+      if (printCount.value > p) printCount.value = p || 1
+    } else {
+      showToast(resp.message || '取得統計失敗', 'error')
+    }
+  } catch (e) {
+    showToast(e.message || '取得統計失敗', 'error')
+  } finally {
+    loadingPrintTotals.value = false
+  }
+}
+
+const closePrintModal = () => {
+  showPrintModal.value = false
+  printTarget.value = null
+}
+
+const submitPrint = () => {
+  const pending = Number(printTotals.value.pending || 0)
+  let count = Number(printCount.value || 0)
+  if (!printTarget.value?.id) return
+  if (!Number.isFinite(count) || count <= 0) {
+    showToast('請輸入正確的列印數量', 'error');
+    return
+  }
+  if (count > pending) {
+    showToast(`本次列印數量不可超過未印數量（${pending}）`, 'error')
+    return
+  }
+  const url = `/print/earth-data/${printTarget.value.id}/pending?count=${count}`
   window.open(url, '_blank')
+  closePrintModal()
 }
 
 const resetForm = () => {
@@ -714,3 +826,7 @@ onMounted(() => {
   loadCustomerOptions()
 })
 </script>
+
+<style>
+.th-base { @apply px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap; }
+</style>

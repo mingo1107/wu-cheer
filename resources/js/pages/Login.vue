@@ -18,7 +18,7 @@
         <h1 class="text-4xl font-bold text-gray-800 mb-2">土方石清運管理系統</h1>
         <p class="text-lg text-gray-600">伍齊資源有限公司</p>
       </div>
-      
+
       <div class="max-w-md mx-auto">
         <!-- 登入卡片 -->
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
@@ -26,7 +26,7 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-2">系統登入</h2>
             <p class="text-gray-600">請輸入您的帳號密碼</p>
           </div>
-          
+
           <form @submit.prevent="handleLogin" class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -36,16 +36,16 @@
                 </svg>
                 電子郵件
               </label>
-              <input 
-                v-model="loginForm.email" 
-                type="email" 
+              <input
+                v-model="loginForm.email"
+                type="email"
                 required
                 placeholder="請輸入電子郵件"
                 class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                 :disabled="isLoading"
               >
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 <svg class="inline w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -53,18 +53,18 @@
                 </svg>
                 密碼
               </label>
-              <input 
-                v-model="loginForm.password" 
-                type="password" 
+              <input
+                v-model="loginForm.password"
+                type="password"
                 required
                 placeholder="請輸入密碼"
                 class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                 :disabled="isLoading"
               >
             </div>
-            
-            <button 
-              type="submit" 
+
+            <button
+              type="submit"
               :disabled="isLoading"
               class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
@@ -87,7 +87,7 @@
 
       </div>
     </div>
-    
+
     <!-- Toast 通知 -->
     <Toast />
   </div>
@@ -110,14 +110,14 @@ const { error: showErrorToast, success: showSuccessToast } = useToast();
 
 // 表單資料
 const loginForm = ref({
-  email: 'test@example.com',
-  password: 'password123'
+  email: 'os3310@gmail.com',
+  password: '00001111'
 });
 
 // 登入處理
 const handleLogin = async () => {
   const result = await login(loginForm.value.email, loginForm.value.password);
-  
+
   if (!result.success) {
     showErrorToast(result.message || '登入失敗');
   }
