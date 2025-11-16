@@ -40,7 +40,21 @@ class EarthDataService
     {
         try {
             DB::beginTransaction();
+            
+            // 提取 cleaner_ids
+            $cleanerIds = $data['cleaner_ids'] ?? [];
+            unset($data['cleaner_ids']);
+            
             $item = $this->repo->create($data);
+            
+            // 同步多對多關係
+            if (!empty($cleanerIds)) {
+                $item->cleaners()->sync($cleanerIds);
+            }
+            
+            // 重新載入關聯
+            $item->load('cleaners');
+            
             DB::commit();
             Log::info('土單資料建立成功', ['id' => $item->id]);
             return $item;
@@ -60,11 +74,27 @@ class EarthDataService
             }
 
             DB::beginTransaction();
+            
+            // 提取 cleaner_ids
+            $cleanerIds = null;
+            if (isset($data['cleaner_ids'])) {
+                $cleanerIds = $data['cleaner_ids'];
+                unset($data['cleaner_ids']);
+            }
+            
             $updated = $this->repo->update($id, $data);
             if (! $updated) {
                 throw new \Exception('更新土單資料失敗');
             }
+            
+            // 同步多對多關係（如果提供了 cleaner_ids）
+            if ($cleanerIds !== null) {
+                $item->cleaners()->sync($cleanerIds);
+            }
+            
             $item = $this->repo->find($id);
+            $item->load('cleaners');
+            
             DB::commit();
 
             Log::info('土單資料更新成功', ['id' => $id]);
@@ -146,6 +176,19 @@ class EarthDataService
             return $this->detailRepo->markPrinted($ids);
         } catch (\Exception $e) {
             Log::error('標記明細為已列印失敗', ['error' => $e->getMessage(), 'ids' => $ids]);
+            throw $e;
+        }
+    }
+
+    /**
+     * 根據 ID 列表取得明細
+     */
+    public function getDetailsByIds(int $earthDataId, array $detailIds)
+    {
+        try {
+            return $this->detailRepo->getDetailsByIds($earthDataId, $detailIds);
+        } catch (\Exception $e) {
+            Log::error('取得明細失敗', ['error' => $e->getMessage(), 'earth_data_id' => $earthDataId, 'ids' => $detailIds]);
             throw $e;
         }
     }

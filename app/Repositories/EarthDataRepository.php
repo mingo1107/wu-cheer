@@ -17,18 +17,18 @@ class EarthDataRepository extends BaseRepository
         $query = $this->model->newQuery();
         $table = $this->model->getTable();
 
-        // join users to resolve created_by/updated_by names, and customers/cleaners to resolve display names
+        // join users to resolve created_by/updated_by names, and customers to resolve display names
+        // cleaners 改為多對多關係，使用 with 載入
         $query->leftJoin('users as cu', 'cu.id', '=', $table . '.created_by')
             ->leftJoin('users as uu', 'uu.id', '=', $table . '.updated_by')
             ->leftJoin('customers as cust', 'cust.id', '=', $table . '.customer_id')
-            ->leftJoin('cleaners as cl', 'cl.id', '=', $table . '.cleaner_id')
             ->select(
                 $table . '.*',
                 'cu.name as created_by_name',
                 'uu.name as updated_by_name',
-                'cust.customer_name as customer_name',
-                'cl.cleaner_name as cleaner_name'
-            );
+                'cust.customer_name as customer_name'
+            )
+            ->with('cleaners'); // 載入多對多關聯
 
         if (Auth::guard('api')->check() && isset(Auth::guard('api')->user()->company_id)) {
             $query->where($table . '.company_id', Auth::guard('api')->user()->company_id);
@@ -93,5 +93,13 @@ class EarthDataRepository extends BaseRepository
             $query->where('company_id', Auth::guard('api')->user()->company_id);
         }
         return $query->whereIn('id', $ids)->delete();
+    }
+
+    /**
+     * 覆寫 find 方法以載入 cleaners 關聯
+     */
+    public function find($id, $columns = ['*'])
+    {
+        return $this->model->with('cleaners')->find($id, $columns);
     }
 }

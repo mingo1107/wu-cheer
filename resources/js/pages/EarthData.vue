@@ -104,34 +104,29 @@
                   <td class="td-base">
                     <div class="flex items-center gap-2">
                       <span>{{ item.issue_count ?? 0 }}</span>
-                      <button @click="openAdjustModal(item)" class="px-2 py-1 text-xs rounded bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100" title="調整張數">調整</button>
+                      <button @click="openAdjustModal(item)" class="btn-adjust" title="調整張數">調整</button>
                     </div>
                   </td>
                   <td class="td-base">{{ item.customer_name || '-' }}</td>
-                  <td class="td-base">{{ item.cleaner_name }}</td>
+                  <td class="td-base">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <template v-if="item.cleaners && item.cleaners.length > 0">
+                        <span v-for="cleaner in item.cleaners" :key="cleaner.id" class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                          {{ cleaner.cleaner_name }}
+                        </span>
+                      </template>
+                      <span v-else class="text-gray-400">-</span>
+                    </div>
+                  </td>
                   <td class="td-base">{{ formatDate(item.valid_date_from) }}</td>
                   <td class="td-base">{{ formatDate(item.valid_date_to) }}</td>
                   <td class="td-base">{{ item.carry_qty }}</td>
                   <td class="td-base">{{ item.carry_soil_type }}</td>
                   <td class="td-base truncate max-w-[20rem]" :title="item.status_desc">
-                    <input
-                      v-if="editing[item.id]"
-                      v-model="editing[item.id].status_desc"
-                      @keydown.enter.stop.prevent="submitInline(item, 'status_desc')"
-                      type="text"
-                      class="w-full px-2 py-1 border border-amber-400 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                    <span v-else>{{ item.status_desc }}</span>
+                    {{ item.status_desc || '-' }}
                   </td>
                   <td class="td-base truncate max-w-[20rem]" :title="item.remark_desc">
-                    <input
-                      v-if="editing[item.id]"
-                      v-model="editing[item.id].remark_desc"
-                      @keydown.enter.stop.prevent="submitInline(item, 'remark_desc')"
-                      type="text"
-                      class="w-full px-2 py-1 border border-amber-400 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                    <span v-else>{{ item.remark_desc }}</span>
+                    {{ item.remark_desc || '-' }}
                   </td>
                   <td class="td-base">{{ item.created_by_name }}</td>
                   <td class="td-base">{{ item.updated_by_name }}</td>
@@ -208,25 +203,25 @@
             <div class="flex-1 overflow-y-scroll pr-1 min-h-0 px-4 md:px-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">批號 *</label>
+                  <label class="label-base">批號 *</label>
                   <input v-model="form.batch_no" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.batch_no }" />
                   <p v-if="errors.batch_no" class="text-red-500 text-xs mt-1">{{ errors.batch_no }}</p>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">開立日期</label>
+                  <label class="label-base">開立日期</label>
                   <input v-model="form.issue_date" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.issue_date }" />
                   <p v-if="errors.issue_date" class="text-red-500 text-xs mt-1">{{ errors.issue_date }}</p>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">工程名稱</label>
+                  <label class="label-base">工程名稱</label>
                   <input v-model="form.project_name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">工程流向管制編號</label>
+                  <label class="label-base">工程流向管制編號</label>
                   <input v-model="form.flow_control_no" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">客戶</label>
+                  <label class="label-base">客戶</label>
                   <select v-model.number="form.customer_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.customer_id }">
                     <option :value="0">請選擇</option>
                     <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -234,34 +229,47 @@
                   <p v-if="errors.customer_id" class="text-red-500 text-xs mt-1">{{ errors.customer_id }}</p>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">土方清運業者</label>
-                  <select v-model.number="form.cleaner_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
-                    <option :value="0">請選擇</option>
-                    <option v-for="cl in cleanerOptions" :key="cl.id" :value="cl.id">{{ cl.name }}</option>
-                  </select>
+                  <label class="label-base">土方清運業者（可多選）</label>
+                  <Multiselect
+                    v-model="form.cleaner_ids"
+                    :options="cleanerOptions"
+                    mode="tags"
+                    :close-on-select="false"
+                    :searchable="true"
+                    :clear-on-select="false"
+                    :preserve-search="true"
+                    placeholder="請選擇清運業者"
+                    label="name"
+                    valueProp="id"
+                    trackBy="id"
+                    :maxHeight="200"
+                    :class="{ 'border-red-500': errors.cleaner_ids }"
+                  />
+                  <p v-if="errors.cleaner_ids" class="text-red-500 text-xs mt-1">{{ errors.cleaner_ids }}</p>
+                  <p class="text-xs text-gray-500 mt-1">已選擇 {{ form.cleaner_ids?.length || 0 }} 個清運業者</p>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">有效期限（起）</label>
+                  <label class="label-base">有效期限（起）</label>
                   <input v-model="form.valid_date_from" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">有效期限（迄）</label>
+                  <label class="label-base">有效期限（迄）</label>
                   <input v-model="form.valid_date_to" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">載運數量</label>
+                  <label class="label-base">載運數量</label>
                   <input v-model.number="form.carry_qty" type="number" min="0" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">載運土質</label>
+                  <label class="label-base">載運土質</label>
                   <input v-model="form.carry_soil_type" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">狀態說明</label>
+                  <label class="label-base">狀態說明</label>
                   <input v-model="form.status_desc" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">備註說明</label>
+                  <label class="label-base">備註說明</label>
                   <textarea v-model="form.remark_desc" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"></textarea>
                 </div>
               </div>
@@ -311,7 +319,7 @@
         </div>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">操作</label>
+            <label class="label-base">操作</label>
             <div class="flex items-center gap-6">
               <label class="inline-flex items-center gap-2">
                 <input type="radio" value="add" v-model="adjustAction" />
@@ -335,7 +343,7 @@
             </template>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">數量</label>
+            <label class="label-base">數量</label>
             <input
               type="number"
               min="1"
@@ -369,6 +377,8 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
+import Multiselect from '@vueform/multiselect'
+import '@vueform/multiselect/themes/default.css'
 import PrintDialog from '@/components/PrintDialog.vue'
 import { useToast } from '@/composables/useToast'
 import earthDataAPI from '../api/earthData.js'
@@ -452,7 +462,7 @@ const form = reactive({
   customer_id: 0,
   valid_date_from: '',
   valid_date_to: '',
-  cleaner_id: 0,
+  cleaner_ids: [],
   project_name: '',
   flow_control_no: '',
   carry_qty: 0,
@@ -532,13 +542,6 @@ const loadEarthData = async (page = 1) => {
 
     if (resp.status) {
       rows.value = Array.isArray(resp.data?.data) ? resp.data.data : []
-      // initialize inline edit buffers per row
-      rows.value.forEach(r => {
-        editing[r.id] = {
-          status_desc: r.status_desc || '',
-          remark_desc: r.remark_desc || ''
-        }
-      })
       pagination.value = {
         current_page: resp.data.current_page,
         last_page: resp.data.last_page,
@@ -577,7 +580,12 @@ const openEditModal = (item) => {
   isEditing.value = true
   form.id = item.id
   form.batch_no = item.batch_no || ''
-  form.cleaner_id = item.cleaner_id || 0
+  // 處理多個清運業者
+  if (item.cleaners && Array.isArray(item.cleaners) && item.cleaners.length > 0) {
+    form.cleaner_ids = item.cleaners.map(c => c.id)
+  } else {
+    form.cleaner_ids = []
+  }
   form.project_name = item.project_name || ''
   form.flow_control_no = item.flow_control_no || ''
   form.issue_date = item.issue_date || ''
@@ -745,7 +753,7 @@ const resetForm = () => {
   form.customer_id = 0
   form.valid_date_from = ''
   form.valid_date_to = ''
-  form.cleaner_id = 0
+  form.cleaner_ids = []
   form.project_name = ''
   form.flow_control_no = ''
   form.carry_qty = 0
@@ -828,5 +836,63 @@ onMounted(() => {
 </script>
 
 <style>
-.th-base { @apply px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap; }
+/* Multiselect 自訂樣式 */
+.multiselect {
+  @apply border-gray-300 rounded-md min-h-[42px];
+}
+
+.multiselect:focus-within {
+  @apply ring-2 ring-amber-500 border-transparent;
+}
+
+.multiselect.is-active {
+  @apply border-amber-500;
+}
+
+.multiselect-tags {
+  @apply bg-transparent min-h-[40px] py-1 px-2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.multiselect-tag {
+  @apply bg-amber-100 text-amber-700 border border-amber-300 rounded px-2 py-1 text-xs font-medium;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.multiselect-tag i {
+  @apply text-amber-700 cursor-pointer;
+  margin-left: 0.25rem;
+}
+
+.multiselect-tag i:hover {
+  @apply text-amber-900;
+}
+
+.multiselect-placeholder {
+  @apply text-gray-400;
+}
+
+.multiselect-single-label {
+  @apply text-gray-900;
+}
+
+.multiselect-option {
+  @apply text-gray-900;
+}
+
+.multiselect-option.is-selected {
+  @apply bg-amber-50 text-amber-700;
+}
+
+.multiselect-option.is-pointed {
+  @apply bg-amber-100;
+}
+
+.multiselect-option.is-selected.is-pointed {
+  @apply bg-amber-200;
+}
 </style>

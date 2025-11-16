@@ -9,5 +9,8 @@ export default {
   },
   async earthDataDatalist(params = {}) {
     return await api.get('/common/earth-data/datalist', params)
+  },
+  async earthDataDetailStatusList() {
+    return await api.get('/common/earth-data-detail/status-list')
   }
 }

@@ -71,6 +71,7 @@
                   <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">聯絡人</th>
                   <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">電話</th>
                   <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">統一編號</th>
+                  <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">車輛數量</th>
                   <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">狀態</th>
                   <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">建立時間</th>
                   <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -78,13 +79,13 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-if="loading" class="animate-pulse">
-                  <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                  <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                     <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
                     <div>載入中...</div>
                   </td>
                 </tr>
                 <tr v-else-if="items.length === 0">
-                  <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                  <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                     <i class="fas fa-truck text-4xl mb-4 text-gray-300"></i>
                     <div class="text-lg font-medium">沒有資料</div>
                     <div class="text-sm">請嘗試調整搜尋條件或新增資料</div>
@@ -96,6 +97,12 @@
                   <td class="td-base">{{ it.phone }}</td>
                   <td class="td-base">{{ it.tax_id || '-' }}</td>
                   <td class="td-base">
+                    <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <i class="fas fa-car mr-1"></i>
+                      {{ it.vehicles_count || 0 }} 台
+                    </span>
+                  </td>
+                  <td class="td-base">
                     <span :class="it.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
                       {{ it.status === 'active' ? '活躍' : '停用' }}
                     </span>
@@ -103,6 +110,9 @@
                   <td class="td-base text-gray-500">{{ formatDate(it.created_at) }}</td>
                   <td class="td-base font-medium">
                     <div class="action-buttons">
+                      <button @click="openVehicleManage(it)" class="action-btn action-btn--vehicle" title="管理車輛">
+                        <i class="fas fa-car action-icon"></i>
+                      </button>
                       <button @click="openEdit(it)" class="action-btn action-btn--edit" title="編輯">
                         <i class="fas fa-edit action-icon"></i>
                       </button>
@@ -160,27 +170,27 @@
           <form @submit.prevent="submit" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">名稱 *</label>
+                <label class="label-base">名稱 *</label>
                 <input v-model="form.cleaner_name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.cleaner_name }" />
                 <p v-if="errors.cleaner_name" class="text-red-500 text-xs mt-1">{{ errors.cleaner_name }}</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">聯絡人 *</label>
+                <label class="label-base">聯絡人 *</label>
                 <input v-model="form.contact_person" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.contact_person }" />
                 <p v-if="errors.contact_person" class="text-red-500 text-xs mt-1">{{ errors.contact_person }}</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">聯絡電話 *</label>
+                <label class="label-base">聯絡電話 *</label>
                 <input v-model="form.phone" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.phone }" />
                 <p v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">統一編號（非必填）</label>
+                <label class="label-base">統一編號（非必填）</label>
                 <input v-model="form.tax_id" maxlength="8" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.tax_id }" />
                 <p v-if="errors.tax_id" class="text-red-500 text-xs mt-1">{{ errors.tax_id }}</p>
               </div>
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">狀態</label>
+                <label class="label-base">狀態</label>
                 <select v-model="form.status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
                   <option value="active">活躍</option>
                   <option value="inactive">停用</option>
@@ -221,6 +231,152 @@
         </div>
       </div>
     </div>
+
+    <!-- Vehicle Management Dialog -->
+    <div v-if="showVehicleDialog" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto" style="min-height: 300px;">
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">
+              <i class="fas fa-car mr-2"></i>
+              管理車輛 - {{ currentCleaner?.cleaner_name }}
+            </h3>
+          </div>
+
+        <!-- Vehicle List -->
+        <div class="mb-6">
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">車頭車號</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">車尾車號</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">狀態</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">備註</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-if="vehiclesLoading" class="animate-pulse">
+                  <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
+                    <div>載入中...</div>
+                  </td>
+                </tr>
+                <tr v-else-if="vehicles.length === 0">
+                  <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                    <i class="fas fa-car text-3xl mb-2 text-gray-300"></i>
+                    <div class="text-sm">尚無車輛資料</div>
+                  </td>
+                </tr>
+                <tr v-else v-for="v in vehicles" :key="v.id" class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ v.front_plate }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-900">{{ v.rear_plate || '-' }}</td>
+                  <td class="px-4 py-3 text-sm">
+                    <span :class="v.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                      {{ v.status === 'active' ? '活躍' : '停用' }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-500">{{ v.notes || '-' }}</td>
+                  <td class="px-4 py-3 text-sm font-medium">
+                    <div class="flex space-x-4">
+                      <button @click="openVehicleEdit(v)" class="p-2 rounded text-amber-600 hover:text-amber-900 hover:bg-amber-50 transition-colors duration-200" title="編輯">
+                        <i class="fas fa-edit text-lg"></i>
+                      </button>
+                      <button @click="openVehicleDelete(v)" class="p-2 rounded text-red-600 hover:text-red-900 hover:bg-red-50 transition-colors duration-200" title="刪除">
+                        <i class="fas fa-trash text-lg"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add Vehicle Button and Close Button -->
+        <div class="flex justify-end gap-3 mb-4">
+          <button @click="openVehicleCreate" class="bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200">
+            <i class="fas fa-plus mr-2"></i>新增車輛
+          </button>
+          <button @click="closeVehicleDialog" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-200">
+            <i class="fas fa-times mr-1"></i>
+            關閉
+          </button>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle Create/Edit Modal -->
+    <div v-if="showVehicleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">{{ isVehicleEditing ? '編輯車輛' : '新增車輛' }}</h3>
+            <button @click="closeVehicleModal" class="text-gray-400 hover:text-gray-600">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+
+          <form @submit.prevent="submitVehicle" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="label-base">車頭車號 *</label>
+                <input v-model="vehicleForm.front_plate" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': vehicleErrors.front_plate }" />
+                <p v-if="vehicleErrors.front_plate" class="text-red-500 text-xs mt-1">{{ vehicleErrors.front_plate }}</p>
+              </div>
+              <div>
+                <label class="label-base">車尾車號</label>
+                <input v-model="vehicleForm.rear_plate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': vehicleErrors.rear_plate }" />
+                <p v-if="vehicleErrors.rear_plate" class="text-red-500 text-xs mt-1">{{ vehicleErrors.rear_plate }}</p>
+              </div>
+              <div class="md:col-span-2">
+                <label class="label-base">狀態</label>
+                <select v-model="vehicleForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                  <option value="active">活躍</option>
+                  <option value="inactive">停用</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label class="label-base">備註</label>
+                <textarea v-model="vehicleForm.notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"></textarea>
+              </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4">
+              <button type="button" @click="closeVehicleModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">取消</button>
+              <button type="submit" :disabled="vehicleSubmitting" class="px-4 py-2 text-sm font-medium text-white bg-amber-600 border border-transparent rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i v-if="vehicleSubmitting" class="fas fa-spinner fa-spin mr-2"></i>
+                {{ isVehicleEditing ? '更新' : '建立' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle Delete Modal -->
+    <div v-if="showVehicleDelete" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mt-4">確認刪除</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500">您確定要刪除車輛「<strong>{{ toDeleteVehicle?.front_plate }}</strong>」嗎？此操作無法復原。</p>
+          </div>
+          <div class="flex justify-center space-x-3 pt-4">
+            <button @click="closeVehicleDelete" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">取消</button>
+            <button @click="confirmVehicleDelete" :disabled="vehicleDeleting" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              <i v-if="vehicleDeleting" class="fas fa-spinner fa-spin mr-2"></i>
+              刪除
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -243,6 +399,28 @@ const deleting = ref(false)
 const toDelete = ref(null)
 
 const form = reactive({ id: null, cleaner_name: '', tax_id: '', contact_person: '', phone: '', status: 'active' })
+
+// 車輛管理相關
+const showVehicleDialog = ref(false)
+const showVehicleModal = ref(false)
+const showVehicleDelete = ref(false)
+const currentCleaner = ref(null)
+const vehicles = ref([])
+const vehiclesLoading = ref(false)
+const isVehicleEditing = ref(false)
+const vehicleSubmitting = ref(false)
+const vehicleDeleting = ref(false)
+const toDeleteVehicle = ref(null)
+const vehicleErrors = ref({})
+
+const vehicleForm = reactive({
+  id: null,
+  cleaner_id: null,
+  front_plate: '',
+  rear_plate: '',
+  status: 'active',
+  notes: ''
+})
 
 let searchTimeout = null
 const debouncedSearch = () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => load(), 500) }
@@ -357,5 +535,142 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+// 車輛管理方法
+const openVehicleManage = async (cleaner) => {
+  currentCleaner.value = cleaner
+  showVehicleDialog.value = true
+  await loadVehicles(cleaner.id)
+}
+
+const closeVehicleDialog = () => {
+  showVehicleDialog.value = false
+  currentCleaner.value = null
+  vehicles.value = []
+}
+
+const loadVehicles = async (cleanerId) => {
+  try {
+    vehiclesLoading.value = true
+    const resp = await cleanerAPI.getVehicles(cleanerId)
+    if (resp.status) {
+      vehicles.value = Array.isArray(resp.data) ? resp.data : []
+    } else {
+      throw new Error(resp.message || '載入車輛失敗')
+    }
+  } catch (e) {
+    console.error('載入車輛錯誤:', e)
+    alert(e.message || '載入車輛失敗')
+  } finally {
+    vehiclesLoading.value = false
+  }
+}
+
+const openVehicleCreate = () => {
+  isVehicleEditing.value = false
+  resetVehicleForm()
+  showVehicleModal.value = true
+}
+
+const openVehicleEdit = (vehicle) => {
+  isVehicleEditing.value = true
+  vehicleForm.id = vehicle.id
+  vehicleForm.cleaner_id = vehicle.cleaner_id
+  vehicleForm.front_plate = vehicle.front_plate
+  vehicleForm.rear_plate = vehicle.rear_plate || ''
+  vehicleForm.status = vehicle.status
+  vehicleForm.notes = vehicle.notes || ''
+  vehicleErrors.value = {}
+  showVehicleModal.value = true
+}
+
+const closeVehicleModal = () => {
+  showVehicleModal.value = false
+  resetVehicleForm()
+  vehicleErrors.value = {}
+}
+
+const resetVehicleForm = () => {
+  vehicleForm.id = null
+  vehicleForm.cleaner_id = currentCleaner.value?.id || null
+  vehicleForm.front_plate = ''
+  vehicleForm.rear_plate = ''
+  vehicleForm.status = 'active'
+  vehicleForm.notes = ''
+}
+
+const submitVehicle = async () => {
+  try {
+    vehicleSubmitting.value = true
+    vehicleErrors.value = {}
+    
+    if (!currentCleaner.value) {
+      throw new Error('清運業者資訊不存在')
+    }
+
+    let resp
+    if (isVehicleEditing.value) {
+      resp = await cleanerAPI.updateVehicle(currentCleaner.value.id, vehicleForm.id, vehicleForm)
+    } else {
+      resp = await cleanerAPI.createVehicle(currentCleaner.value.id, vehicleForm)
+    }
+
+    if (resp.status) {
+      closeVehicleModal()
+      await loadVehicles(currentCleaner.value.id)
+      // 重新載入清運業者列表以更新車輛數量
+      load()
+    } else {
+      if (resp.errors) {
+        vehicleErrors.value = resp.errors
+      } else {
+        throw new Error(resp.message || '操作失敗')
+      }
+    }
+  } catch (e) {
+    console.error('提交車輛錯誤:', e)
+    alert(e.message || '操作失敗')
+  } finally {
+    vehicleSubmitting.value = false
+  }
+}
+
+const openVehicleDelete = (vehicle) => {
+  toDeleteVehicle.value = vehicle
+  showVehicleDelete.value = true
+}
+
+const closeVehicleDelete = () => {
+  showVehicleDelete.value = false
+  toDeleteVehicle.value = null
+}
+
+const confirmVehicleDelete = async () => {
+  try {
+    vehicleDeleting.value = true
+    if (!currentCleaner.value || !toDeleteVehicle.value) {
+      throw new Error('資料不存在')
+    }
+
+    const resp = await cleanerAPI.deleteVehicle(currentCleaner.value.id, toDeleteVehicle.value.id)
+    if (resp.status) {
+      closeVehicleDelete()
+      await loadVehicles(currentCleaner.value.id)
+      // 重新載入清運業者列表以更新車輛數量
+      load()
+    } else {
+      throw new Error(resp.message || '刪除失敗')
+    }
+  } catch (e) {
+    console.error('刪除車輛錯誤:', e)
+    alert(e.message || '刪除失敗')
+  } finally {
+    vehicleDeleting.value = false
+  }
+}
+
 onMounted(() => { load() })
 </script>
+
+<style scoped>
+/* 所有通用樣式已移至 resources/css/app.css */
+</style>

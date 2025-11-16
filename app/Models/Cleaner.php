@@ -36,4 +36,20 @@ class Cleaner extends Model
     protected $fillable   = self::FILLABLE;
     protected $attributes = self::ATTRIBUTES;
     protected $casts      = self::CASTS;
+
+    /**
+     * 關聯到車輛
+     */
+    public function vehicles()
+    {
+        return $this->hasMany(CleanerVehicle::class);
+    }
+
+    /**
+     * 取得活躍的車輛
+     */
+    public function activeVehicles()
+    {
+        return $this->hasMany(CleanerVehicle::class)->where('status', 'active');
+    }
 }

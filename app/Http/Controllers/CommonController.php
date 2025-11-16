@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Services\CommonService;
@@ -90,6 +91,45 @@ class CommonController extends Controller
             return response()->json($this->apiOutput->successFormat($data, '工程清單取得成功'));
         } catch (\Exception $e) {
             return response()->json($this->apiOutput->failFormat('取得工程清單失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 取得土單明細狀態列表
+     */
+    public function getEarthDataDetailStatusList(): JsonResponse
+    {
+        try {
+            $statusList = [
+                [
+                    'value' => null,
+                    'label' => '全部',
+                ],
+                [
+                    'value' => \App\Models\EarthDataDetail::STATUS_UNPRINTED,
+                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_UNPRINTED],
+                ],
+                [
+                    'value' => \App\Models\EarthDataDetail::STATUS_PRINTED,
+                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_PRINTED],
+                ],
+                [
+                    'value' => \App\Models\EarthDataDetail::STATUS_USED,
+                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_USED],
+                ],
+                [
+                    'value' => \App\Models\EarthDataDetail::STATUS_VOIDED,
+                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_VOIDED],
+                ],
+                [
+                    'value' => \App\Models\EarthDataDetail::STATUS_RECYCLED,
+                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_RECYCLED],
+                ],
+            ];
+
+            return response()->json($this->apiOutput->successFormat($statusList, '狀態列表取得成功'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('取得狀態列表失敗：' . $e->getMessage(), [], 500));
         }
     }
 }

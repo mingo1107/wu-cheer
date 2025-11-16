@@ -38,6 +38,9 @@ class CleanerRepository extends BaseRepository
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
+        // 添加車輛數量統計
+        $query->withCount('vehicles');
+
         return $query->paginate($perPage);
     }
 

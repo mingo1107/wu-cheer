@@ -229,7 +229,7 @@
           <form @submit.prevent="submitForm" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">客戶名稱 *</label>
+                <label class="label-base">客戶名稱 *</label>
                 <input
                   v-model="form.customer_name"
                   type="text"
@@ -241,7 +241,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">聯絡人 *</label>
+                <label class="label-base">聯絡人 *</label>
                 <input
                   v-model="form.contact_person"
                   type="text"
@@ -253,7 +253,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">電話</label>
+                <label class="label-base">電話</label>
                 <input
                   v-model="form.phone"
                   type="tel"
@@ -264,7 +264,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">電子郵件</label>
+                <label class="label-base">電子郵件</label>
                 <input
                   v-model="form.email"
                   type="email"
@@ -275,7 +275,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">統一編號</label>
+                <label class="label-base">統一編號</label>
                 <input
                   v-model="form.tax_id"
                   type="text"
@@ -287,7 +287,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">狀態</label>
+                <label class="label-base">狀態</label>
                 <select
                   v-model="form.status"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
@@ -301,7 +301,7 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">地址</label>
+              <label class="label-base">地址</label>
               <textarea
                 v-model="form.address"
                 rows="2"
@@ -312,7 +312,7 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">備註</label>
+              <label class="label-base">備註</label>
               <textarea
                 v-model="form.notes"
                 rows="3"
@@ -629,3 +629,7 @@ onMounted(() => {
   loadCustomers()
 })
 </script>
+
+<style scoped>
+/* 所有通用樣式已移至 resources/css/app.css */
+</style>

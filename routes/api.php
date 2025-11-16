@@ -7,6 +7,7 @@ use App\Http\Controllers\CommonController;
 use App\Http\Controllers\CleanerController;
 use App\Http\Controllers\EarthDataController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VerifierController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,6 +42,13 @@ Route::middleware('auth:api')->group(function () {
     // 使用者管理 CRUD
     Route::apiResource('users', UserController::class);
 
+    //@ verifier
+    // 核銷人員管理 CRUD
+    Route::apiResource('verifiers', VerifierController::class);
+    // 核銷人員額外功能
+    Route::get('verifiers/active/list', [VerifierController::class, 'active'])->name('api.verifiers.active');
+    Route::get('verifiers/stats/overview', [VerifierController::class, 'stats'])->name('api.verifiers.stats');
+
     //@ customer
     // 客戶管理 CRUD
     Route::apiResource('customers', CustomerController::class);
@@ -51,6 +59,11 @@ Route::middleware('auth:api')->group(function () {
 
     //@ cleaner 清運業者 CRUD
     Route::apiResource('cleaners', CleanerController::class);
+    // 清運業者車輛管理
+    Route::get('cleaners/{cleanerId}/vehicles', [CleanerController::class, 'getVehicles'])->name('api.cleaners.vehicles');
+    Route::post('cleaners/{cleanerId}/vehicles', [CleanerController::class, 'storeVehicle'])->name('api.cleaners.vehicles.store');
+    Route::put('cleaners/{cleanerId}/vehicles/{vehicleId}', [CleanerController::class, 'updateVehicle'])->name('api.cleaners.vehicles.update');
+    Route::delete('cleaners/{cleanerId}/vehicles/{vehicleId}', [CleanerController::class, 'destroyVehicle'])->name('api.cleaners.vehicles.destroy');
 
     //@ earth-data 土單資料 CRUD
     Route::apiResource('earth-data', EarthDataController::class);
@@ -60,6 +73,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('earth-data/{id}/details', [\App\Http\Controllers\EarthDataUsageController::class, 'details'])->name('api.earth-data.details');
     // 匯出指定工程的使用明細（xlsx）
     Route::get('earth-data/{id}/details/export', [\App\Http\Controllers\EarthDataUsageController::class, 'detailsExport'])->name('api.earth-data.details-export');
+    // 更新明細狀態
+    Route::put('earth-data/{id}/details/{detailId}/status', [\App\Http\Controllers\EarthDataUsageController::class, 'updateDetailStatus'])->name('api.earth-data.details.update-status');
+    // 批量回收明細
+    Route::post('earth-data/{id}/details/recycle', [\App\Http\Controllers\EarthDataUsageController::class, 'recycleDetails'])->name('api.earth-data.details.recycle');
+    // 批量更新明細狀態
+    Route::post('earth-data/{id}/details/batch-update-status', [\App\Http\Controllers\EarthDataUsageController::class, 'batchUpdateStatus'])->name('api.earth-data.details.batch-update-status');
     // 取得使用統計
     Route::get('earth-data/{id}/usage/stats', [\App\Http\Controllers\EarthStatisticsController::class, 'stats'])->name('api.earth-data.usage-stats');
 
@@ -70,4 +89,5 @@ Route::middleware('auth:api')->group(function () {
     Route::get('common/cleaners', [CommonController::class, 'getCleanerList'])->name('api.common.cleaners');
     Route::get('common/customers', [CommonController::class, 'getCustomerList'])->name('api.common.customers');
     Route::get('common/earth-data/datalist', [CommonController::class, 'getEarthDataDatalist'])->name('api.common.earth-data.datalist');
+    Route::get('common/earth-data-detail/status-list', [CommonController::class, 'getEarthDataDetailStatusList'])->name('api.common.earth-data-detail.status-list');
 });

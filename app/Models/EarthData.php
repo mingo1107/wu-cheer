@@ -64,4 +64,13 @@ class EarthData extends Model
     protected $fillable   = self::FILLABLE;
     protected $attributes = self::ATTRIBUTES;
     protected $casts      = self::CASTS;
+
+    /**
+     * 多對多關聯：清運業者
+     */
+    public function cleaners()
+    {
+        return $this->belongsToMany(Cleaner::class, 'earth_data_cleaners', 'earth_data_id', 'cleaner_id')
+            ->withTimestamps();
+    }
 }

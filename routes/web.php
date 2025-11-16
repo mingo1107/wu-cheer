@@ -14,6 +14,7 @@ Route::get('/login', function () {
 
 // 列印路由（需放在 SPA catch-all 前）
 Route::get('/print/earth-data/{id}/pending', [EarthDataController::class, 'printPending'])->name('print.earth-data.pending');
+Route::get('/print/earth-data/{id}/selected', [EarthDataController::class, 'printSelected'])->name('print.earth-data.selected');
 
 // SPA 路由 - 所有前端路由都指向同一個視圖
 Route::get('/{any}', function () {

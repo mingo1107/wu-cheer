@@ -59,23 +59,71 @@ class EarthDataDetailRepository extends BaseRepository
 
     /**
      * 取得指定工程的使用明細（含核銷人員姓名）
+     *
+     * @param int $earthDataId
+     * @param int|null $status 狀態篩選（可選）
+     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function listDetailsWithUser(int $earthDataId)
+    public function listDetailsWithUser(int $earthDataId, ?int $status = null)
     {
-        return $this->model->newQuery()
+        $query = $this->model->newQuery()
             ->from($this->model->getTable() . ' as d')
             ->leftJoin('users as u', 'u.id', '=', 'd.verified_by')
-            ->where('d.earth_data_id', $earthDataId)
-            ->orderByDesc('d.id')
+            ->where('d.earth_data_id', $earthDataId);
+        
+        // 狀態篩選
+        if ($status !== null) {
+            $query->where('d.status', $status);
+        }
+        
+        return $query->orderByDesc('d.id')
             ->get([
                 'd.id',
                 'd.barcode',
+                'd.status',
                 'd.print_at',
                 'd.verified_at',
                 'd.verified_by',
                 DB::raw('u.name as verified_by_name'),
                 'd.created_at',
             ]);
+    }
+
+    /**
+     * 更新明細狀態
+     *
+     * @param int $id
+     * @param int $status
+     * @return bool
+     */
+    public function updateStatus(int $id, int $status): bool
+    {
+        $detail = $this->model->find($id);
+        if (! $detail) {
+            return false;
+        }
+
+        return $detail->update(['status' => $status]);
+    }
+
+    /**
+     * 批量更新明細狀態（根據 ID 列表）
+     *
+     * @param int $earthDataId
+     * @param array $detailIds
+     * @param int $status
+     * @return int 實際更新的數量
+     */
+    public function batchUpdateStatusByIds(int $earthDataId, array $detailIds, int $status): int
+    {
+        if (empty($detailIds)) {
+            return 0;
+        }
+
+        return $this->model->newQuery()
+            ->where('earth_data_id', $earthDataId)
+            ->whereIn('id', $detailIds)
+            ->update(['status' => $status]);
     }
 
     /**
@@ -93,6 +141,55 @@ class EarthDataDetailRepository extends BaseRepository
             'verified' => (int) $printed,
             'pending'  => (int) $pending,
         ];
+    }
+
+    /**
+     * 取得詳細統計（總數量、已列印、已核銷、作廢、回收）
+     */
+    public function getDetailStats(int $earthDataId): array
+    {
+        $base = $this->model->newQuery()->where('earth_data_id', $earthDataId);
+        $total = (clone $base)->count();
+        $printed = (clone $base)->where('status', \App\Models\EarthDataDetail::STATUS_PRINTED)->count();
+        $used = (clone $base)->where('status', \App\Models\EarthDataDetail::STATUS_USED)->count();
+        $voided = (clone $base)->where('status', \App\Models\EarthDataDetail::STATUS_VOIDED)->count();
+        $recycled = (clone $base)->where('status', \App\Models\EarthDataDetail::STATUS_RECYCLED)->count();
+        
+        return [
+            'total'    => (int) $total,
+            'printed'  => (int) $printed,
+            'used'     => (int) $used,
+            'voided'   => (int) $voided,
+            'recycled' => (int) $recycled,
+        ];
+    }
+
+    /**
+     * 批量更新明細狀態（回收功能）
+     *
+     * @param int $earthDataId
+     * @param int $count 要回收的數量
+     * @param int $status 目標狀態
+     * @return int 實際更新的數量
+     */
+    public function batchUpdateStatus(int $earthDataId, int $count, int $status): int
+    {
+        // 取得可回收的明細（已使用狀態，且未回收）
+        $details = $this->model->newQuery()
+            ->where('earth_data_id', $earthDataId)
+            ->where('status', \App\Models\EarthDataDetail::STATUS_USED)
+            ->orderBy('id')
+            ->limit($count)
+            ->get();
+
+        if ($details->isEmpty()) {
+            return 0;
+        }
+
+        $ids = $details->pluck('id')->toArray();
+        return $this->model->newQuery()
+            ->whereIn('id', $ids)
+            ->update(['status' => $status]);
     }
 
     /**
@@ -130,6 +227,22 @@ class EarthDataDetailRepository extends BaseRepository
     }
 
     /**
+     * 根據 ID 列表取得明細
+     *
+     * @param int $earthDataId
+     * @param array $detailIds
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDetailsByIds(int $earthDataId, array $detailIds)
+    {
+        return $this->model->newQuery()
+            ->where('earth_data_id', $earthDataId)
+            ->whereIn('id', $detailIds)
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
      * 標記明細為已列印
      */
     public function markPrinted(array $ids): int
@@ -138,6 +251,11 @@ class EarthDataDetailRepository extends BaseRepository
             return 0;
         }
 
-        return $this->model->newQuery()->whereIn('id', $ids)->update(['print_at' => now()]);
+        return $this->model->newQuery()
+            ->whereIn('id', $ids)
+            ->update([
+                'print_at' => now(),
+                'status' => \App\Models\EarthDataDetail::STATUS_PRINTED,
+            ]);
     }
 }

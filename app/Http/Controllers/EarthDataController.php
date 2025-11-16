@@ -47,7 +47,8 @@ class EarthDataController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'batch_no'        => 'required|string|max:255',
-                'cleaner_id'      => 'nullable|integer',
+                'cleaner_ids'     => 'nullable|array',
+                'cleaner_ids.*'   => 'integer|exists:cleaners,id',
                 'project_name'    => 'nullable|string|max:255',
                 'issue_date'      => 'nullable|date',
                 'issue_count'     => 'nullable|integer|min:0',
@@ -117,7 +118,8 @@ class EarthDataController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'batch_no'        => 'sometimes|required|string|max:255',
-                'cleaner_id'      => 'nullable|integer',
+                'cleaner_ids'     => 'nullable|array',
+                'cleaner_ids.*'   => 'integer|exists:cleaners,id',
                 'project_name'    => 'nullable|string|max:255',
                 'flow_control_no' => 'nullable|string|max:255',
                 'issue_date'      => 'nullable|date',
@@ -217,6 +219,51 @@ class EarthDataController extends Controller
         if (! is_null($limit) && $limit <= 0) { $limit = null; }
         $details = $this->service->getUnprintedDetails($earth->id, $limit);
         $ids     = $details->pluck('id')->all();
+        if (! empty($ids)) {
+            $this->service->markAsPrinted($ids);
+        }
+
+        return view('print.earth_ticket', [
+            'earth'   => $earth,
+            'details' => $details,
+        ]);
+    }
+
+    /**
+     * 列印：根據指定的明細 ID 列表列印並標記為已列印
+     */
+    public function printSelected(Request $request, int $id)
+    {
+        $earth = $this->service->getEarthData($id);
+        if (! $earth) {
+            abort(404, '土單資料不存在');
+        }
+
+        // 權限：限定同公司
+        $this->assertSameCompany($earth->company_id);
+
+        $detailIdsInput = $request->input('detail_ids', []);
+        
+        // 處理逗號分隔的字串或陣列
+        if (is_string($detailIdsInput)) {
+            $detailIds = array_filter(array_map('intval', explode(',', $detailIdsInput)));
+        } elseif (is_array($detailIdsInput)) {
+            $detailIds = array_filter(array_map('intval', $detailIdsInput));
+        } else {
+            $detailIds = [];
+        }
+        
+        if (empty($detailIds)) {
+            abort(400, '請選擇要列印的明細');
+        }
+
+        $details = $this->service->getDetailsByIds($earth->id, $detailIds);
+        if ($details->isEmpty()) {
+            abort(404, '找不到指定的明細');
+        }
+
+        // 標記為已列印
+        $ids = $details->pluck('id')->all();
         if (! empty($ids)) {
             $this->service->markAsPrinted($ids);
         }

@@ -53,6 +53,9 @@
                 <router-link to="/user" @click="adminMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
                   <i class="fas fa-user mr-3"></i> 使用者管理
                 </router-link>
+                <router-link to="/verifier" @click="adminMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                  <i class="fas fa-user-check mr-3"></i> 核銷人員管理
+                </router-link>
                 <div class="flex items-center px-4 py-2 text-sm text-gray-400 cursor-not-allowed">
                   <i class="fas fa-clipboard-list mr-3"></i> 使用者操作紀錄（開發中）
                 </div>
@@ -116,17 +119,7 @@
                   <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 11-2 0V5.414l-8.293 8.293a1 1 0 01-1.414 0L3 12.414V15a1 1 0 01-2 0V3a1 1 0 011-1zm14 14a1 1 0 110 2 1 1 0 010-2z" clip-rule="evenodd"/>
                   </svg>
-                  土單使用明細
-                </router-link>
-                <router-link
-                  to="/earth-recycle"
-                  @click="earthSystemMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-200"
-                >
-                  <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-                  </svg>
-                  土單回收作業
+                  土單作業明細
                 </router-link>
                 <router-link
                   to="/earth-statistics"
@@ -277,6 +270,9 @@
             <router-link to="/user" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/user' }">
               使用者管理
             </router-link>
+            <router-link to="/verifier" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/verifier' }">
+              核銷人員管理
+            </router-link>
             <div class="px-6 py-2 text-base text-gray-400">使用者操作紀錄（開發中）</div>
 
             <!-- 資料設定 手機版 -->
@@ -316,18 +312,6 @@
                 <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
               </svg>
               土單資料管理
-            </router-link>
-            
-            <router-link
-              to="/earth-recycle"
-              @click="mobileMenuOpen = false"
-              class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200"
-              :class="{ 'text-amber-600 bg-amber-50': $route.path === '/earth-recycle' }"
-            >
-              <svg class="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-              </svg>
-              土單回收作業
             </router-link>
             
             <router-link
@@ -403,12 +387,12 @@ let earthSystemMenuTimeout = null;
 
 // 計算土單系統是否為活躍狀態
 const isEarthSystemActive = computed(() => {
-  const earthSystemPaths = ['/case', '/earth-data', '/earth-recycle', '/earth-statistics'];
+  const earthSystemPaths = ['/case', '/earth-data', '/earth-statistics'];
   return earthSystemPaths.includes(router.currentRoute.value.path);
 });
 
 const isAdminActive = computed(() => {
-  const adminPaths = ['/user', '/user-logs'];
+  const adminPaths = ['/user', '/verifier', '/user-logs'];
   return adminPaths.includes(router.currentRoute.value.path);
 });
 

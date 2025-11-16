@@ -48,6 +48,15 @@ const routes = [
         }
       },
       {
+        path: 'verifier',
+        name: 'Verifier',
+        component: () => import('../pages/Verifier.vue'),
+        meta: {
+          title: '核銷人員管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
+      {
         path: 'customer',
         name: 'Customer',
         component: () => import('../pages/Customer.vue'),
@@ -89,15 +98,6 @@ const routes = [
         component: () => import('../pages/EarthUsage.vue'),
         meta: {
           title: '土單使用明細 | 土方石清運管理系統',
-          requiresAuth: true
-        }
-      },
-      {
-        path: 'earth-recycle',
-        name: 'EarthRecycle',
-        component: () => import('../pages/EarthRecycle.vue'),
-        meta: {
-          title: '土單回收作業 | 土方石清運管理系統',
           requiresAuth: true
         }
       },
