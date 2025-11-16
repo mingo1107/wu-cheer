@@ -82,4 +82,18 @@ class EarthDataUsageService
     {
         return $this->detailRepo->batchUpdateStatusByIds($earthDataId, $detailIds, $status);
     }
+
+    /**
+     * 批量更新明細的使用起訖日期
+     *
+     * @param int $earthDataId
+     * @param array $detailIds
+     * @param string|null $useStartDate
+     * @param string|null $useEndDate
+     * @return int
+     */
+    public function batchUpdateDatesByIds(int $earthDataId, array $detailIds, ?string $useStartDate = null, ?string $useEndDate = null): int
+    {
+        return $this->detailRepo->batchUpdateDatesByIds($earthDataId, $detailIds, $useStartDate, $useEndDate);
+    }
 }

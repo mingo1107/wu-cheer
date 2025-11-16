@@ -16,18 +16,18 @@
           <div class="flex-1">
             <label class="block text-xs text-gray-500 mb-1">選擇工程（可搜尋）</label>
             <div class="flex gap-2">
-              <input
-                v-model="earthInput"
-                @input="debouncedLoadDatalist"
+            <input
+              v-model="earthInput"
+              @input="debouncedLoadDatalist"
                 @change="handleEarthInputChange"
-                @keyup.enter="loadSelectedEarth"
-                list="earth-data-list"
-                placeholder="輸入關鍵字（批號/工程/客戶）後從下拉選擇"
+              @keyup.enter="loadSelectedEarth"
+              list="earth-data-list"
+              placeholder="輸入關鍵字（批號/工程/客戶）後從下拉選擇"
                 class="flex-1 px-3 py-2 border rounded-md"
-              />
-              <datalist id="earth-data-list">
-                <option v-for="opt in earthOptions" :key="opt.id" :value="`${opt.id}｜${opt.text}`"></option>
-              </datalist>
+            />
+            <datalist id="earth-data-list">
+              <option v-for="opt in earthOptions" :key="opt.id" :value="`${opt.id}｜${opt.text}`"></option>
+            </datalist>
               <button
                 v-if="selected"
                 @click="clearSelection"
@@ -86,39 +86,65 @@
           
           <!-- 批量操作區域 -->
           <div v-if="selected" class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-medium text-gray-700">動作選項：</label>
-                <label class="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="radio" value="void" v-model="batchAction" class="text-red-600 focus:ring-red-500" />
-                  <span class="text-sm">作廢</span>
-                </label>
-                <label class="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="radio" value="recycle" v-model="batchAction" class="text-orange-600 focus:ring-orange-500" />
-                  <span class="text-sm">回收</span>
-                </label>
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-700">動作選項：</label>
+                  <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="radio" value="void" v-model="batchAction" class="text-red-600 focus:ring-red-500" />
+                    <span class="text-sm">作廢</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="radio" value="recycle" v-model="batchAction" class="text-orange-600 focus:ring-orange-500" />
+                    <span class="text-sm">回收</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="radio" value="updateDates" v-model="batchAction" class="text-blue-600 focus:ring-blue-500" />
+                    <span class="text-sm">更改期限</span>
+                  </label>
+                </div>
+                <div class="flex-1"></div>
+                <div class="text-sm text-gray-600">
+                  已選擇 <span class="font-semibold text-amber-600">{{ selectedDetailIds.length }}</span> 筆
+                </div>
+                <button
+                  @click="printSelected"
+                  :disabled="selectedDetailIds.length === 0"
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="列印選中的明細"
+                >
+                  <i class="fas fa-print mr-2"></i>
+                  列印
+                </button>
+                <button
+                  @click="submitBatchAction"
+                  :disabled="!batchAction || selectedDetailIds.length === 0 || submittingBatch"
+                  class="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <i v-if="submittingBatch" class="fas fa-spinner fa-spin mr-2"></i>
+                  確認
+                </button>
               </div>
-              <div class="flex-1"></div>
-              <div class="text-sm text-gray-600">
-                已選擇 <span class="font-semibold text-amber-600">{{ selectedDetailIds.length }}</span> 筆
+              <!-- 更改期限的日期輸入 -->
+              <div v-if="batchAction === 'updateDates'" class="flex items-center gap-4 pt-2 border-t border-gray-300">
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-700">使用起始日期：</label>
+                  <input
+                    type="date"
+                    v-model="batchUseStartDate"
+                    class="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-700">使用結束日期：</label>
+                  <input
+                    type="date"
+                    v-model="batchUseEndDate"
+                    :min="batchUseStartDate"
+                    class="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
-              <button
-                @click="printSelected"
-                :disabled="selectedDetailIds.length === 0"
-                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="列印選中的明細"
-              >
-                <i class="fas fa-print mr-2"></i>
-                列印
-              </button>
-              <button
-                @click="submitBatchAction"
-                :disabled="!batchAction || selectedDetailIds.length === 0 || submittingBatch"
-                class="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <i v-if="submittingBatch" class="fas fa-spinner fa-spin mr-2"></i>
-                確認
-              </button>
             </div>
           </div>
 
@@ -137,9 +163,9 @@
                   </th>
                   <th class="px-3 py-2 text-left">Barcode</th>
                   <th class="px-3 py-2 text-left">狀態</th>
+                  <th class="px-3 py-2 text-left">使用起迄日</th>
                   <th class="px-3 py-2 text-left">列印時間</th>
-                  <th class="px-3 py-2 text-left">核銷時間</th>
-                  <th class="px-3 py-2 text-left">核銷人員</th>
+                  <th class="px-3 py-2 text-left">核銷人員/時間</th>
                   <th class="px-3 py-2 text-left">建立時間</th>
                   <th class="px-3 py-2 text-left">操作</th>
                 </tr>
@@ -162,10 +188,16 @@
                       {{ getStatusLabel(d.status) }}
                     </span>
                   </td>
-                  <td class="px-3 py-2">{{ formatDateTime(d.print_at) }}</td>
-                  <td class="px-3 py-2">{{ formatDateTime(d.verified_at) }}</td>
-                  <td class="px-3 py-2">{{ d.verified_by_name || '-' }}</td>
-                  <td class="px-3 py-2">{{ formatDateTime(d.created_at) }}</td>
+                  <td class="px-3 py-2">{{ formatDate(d.use_start_date) }}<br>{{ formatDate(d.use_end_date) }}</td>
+                  <td class="px-3 py-2">{{ formatDateTimeShort(d.print_at) }}</td>
+                  <td class="px-3 py-2">
+                    <div v-if="d.verified_at || d.verified_by_name">
+                      <div v-if="d.verified_by_name" class="font-medium">{{ d.verified_by_name }}</div>
+                      <div v-if="d.verified_at" class="text-xs text-gray-500">{{ formatDateTimeShort(d.verified_at) }}</div>
+                    </div>
+                    <span v-else class="text-gray-400">-</span>
+                  </td>
+                  <td class="px-3 py-2">{{ formatDateTimeShort(d.created_at) }}</td>
                   <td class="px-3 py-2">
                     <span v-if="d.status === 3" class="text-xs text-gray-400">已作廢</span>
                     <span v-else-if="d.status === 4" class="text-xs text-gray-400">已回收</span>
@@ -174,7 +206,7 @@
                   </td>
                 </tr>
                 <tr v-if="details.length === 0">
-                  <td class="px-3 py-6 text-center text-gray-500" colspan="8">無明細</td>
+                  <td class="px-3 py-6 text-center text-gray-500" colspan="9">無明細</td>
                 </tr>
               </tbody>
             </table>
@@ -192,6 +224,7 @@ import earthDataAPI from '../api/earthData.js'
 import commonAPI from '../api/common.js'
 import { useToast } from '../composables/useToast.js'
 import Toast from '../components/Toast.vue'
+import { formatDate, formatDateTime, formatDateTimeShort} from '../utils/date.js'
 
 const { success, error } = useToast()
 
@@ -207,6 +240,8 @@ const statusList = ref([]) // 狀態列表（從 API 取得）
 // batch action state
 const selectedDetailIds = ref([])
 const batchAction = ref('')
+const batchUseStartDate = ref('')
+const batchUseEndDate = ref('')
 const submittingBatch = ref(false)
 
 let datalistTimer = null
@@ -255,12 +290,14 @@ const loadDetails = async (id) => {
     params.status = detailStatusFilter.value
   }
   const d = await earthDataAPI.details(id, params)
-  if (d.status) {
-    details.value = Array.isArray(d.data?.details) ? d.data.details : []
+    if (d.status) {
+      details.value = Array.isArray(d.data?.details) ? d.data.details : []
     stats.value = d.data?.stats || null
     // 清除選擇
     selectedDetailIds.value = []
     batchAction.value = ''
+    batchUseStartDate.value = ''
+    batchUseEndDate.value = ''
   }
 }
 
@@ -271,6 +308,8 @@ const clearSelection = () => {
   stats.value = null
   selectedDetailIds.value = []
   batchAction.value = ''
+  batchUseStartDate.value = ''
+  batchUseEndDate.value = ''
   detailStatusFilter.value = null
   loadEarthDatalist()
 }
@@ -343,24 +382,53 @@ const submitBatchAction = async () => {
     return
   }
 
-  const actionLabel = batchAction.value === 'void' ? '作廢' : '回收'
-  if (!confirm(`確定要${actionLabel}選中的 ${selectedDetailIds.value.length} 筆明細嗎？`)) {
-    return
-  }
-
   submittingBatch.value = true
   try {
-    const status = batchAction.value === 'void' ? 3 : 4
-    const resp = await earthDataAPI.batchUpdateStatus(selected.value.id, selectedDetailIds.value, status)
-    if (resp.status) {
-      success(`成功${actionLabel} ${resp.data?.updated_count || selectedDetailIds.value.length} 筆明細`)
-      // 重新載入明細和統計
-      await loadDetails(selected.value.id)
+    if (batchAction.value === 'updateDates') {
+      // 更改期限
+      if (!batchUseStartDate.value && !batchUseEndDate.value) {
+        error('請至少輸入一個日期')
+        submittingBatch.value = false
+        return
+      }
+      if (!confirm(`確定要更新選中的 ${selectedDetailIds.value.length} 筆明細的使用期限嗎？`)) {
+        submittingBatch.value = false
+        return
+      }
+      const resp = await earthDataAPI.batchUpdateDates(
+        selected.value.id,
+        selectedDetailIds.value,
+        batchUseStartDate.value || null,
+        batchUseEndDate.value || null
+      )
+      if (resp.status) {
+        success(`成功更新 ${resp.data?.updated_count || selectedDetailIds.value.length} 筆明細的使用期限`)
+        // 重新載入明細和統計
+        await loadDetails(selected.value.id)
+        batchUseStartDate.value = ''
+        batchUseEndDate.value = ''
+      } else {
+        error(resp.message || '更新期限失敗')
+      }
     } else {
-      error(resp.message || `${actionLabel}失敗`)
+      // 作廢或回收
+      const actionLabel = batchAction.value === 'void' ? '作廢' : '回收'
+      if (!confirm(`確定要${actionLabel}選中的 ${selectedDetailIds.value.length} 筆明細嗎？`)) {
+        submittingBatch.value = false
+        return
+      }
+      const status = batchAction.value === 'void' ? 3 : 4
+      const resp = await earthDataAPI.batchUpdateStatus(selected.value.id, selectedDetailIds.value, status)
+      if (resp.status) {
+        success(`成功${actionLabel} ${resp.data?.updated_count || selectedDetailIds.value.length} 筆明細`)
+        // 重新載入明細和統計
+        await loadDetails(selected.value.id)
+      } else {
+        error(resp.message || `${actionLabel}失敗`)
+      }
     }
   } catch (e) {
-    error(`${batchAction.value === 'void' ? '作廢' : '回收'}失敗：` + (e.message || '未知錯誤'))
+    error('操作失敗：' + (e.message || '未知錯誤'))
   } finally {
     submittingBatch.value = false
   }
@@ -390,11 +458,6 @@ const getStatusClass = (status) => {
 }
 
 
-const formatDateTime = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleString('zh-TW')
-}
 
 // 載入狀態列表
 const loadStatusList = async () => {

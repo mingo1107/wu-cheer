@@ -354,6 +354,21 @@
               減少數量不可超過未印張數（{{ adjustTotals?.pending || 0 }}）
             </p>
           </div>
+          <div v-if="adjustAction === 'add'">
+            <label class="label-base">使用起始日期</label>
+            <input
+              type="date"
+              v-model="adjustUseStartDate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+          </div>
+          <div v-if="adjustAction === 'add'">
+            <label class="label-base">使用結束日期</label>
+            <input
+              type="date"
+              v-model="adjustUseEndDate"
+              :min="adjustUseStartDate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+          </div>
         </div>
         <div class="mt-5 flex justify-end gap-3">
           <button @click="closeAdjustModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">取消</button>
@@ -406,6 +421,8 @@ const showAdjustModal = ref(false)
 const adjustTarget = ref(null)
 const adjustAction = ref('add')
 const adjustCount = ref(1)
+const adjustUseStartDate = ref('')
+const adjustUseEndDate = ref('')
 const submittingAdjust = ref(false)
 const adjustTotals = ref({ total: 0, verified: 0, pending: 0 })
 const loadingAdjustTotals = ref(false)
@@ -626,6 +643,8 @@ const openAdjustModal = async (item) => {
   adjustTarget.value = item
   adjustAction.value = 'add'
   adjustCount.value = 1
+  adjustUseStartDate.value = ''
+  adjustUseEndDate.value = ''
   adjustTotals.value = { total: 0, verified: 0, pending: 0 }
   showAdjustModal.value = true
   loadingAdjustTotals.value = true
@@ -662,10 +681,19 @@ const submitAdjust = async () => {
         return
       }
     }
-    const resp = await earthDataAPI.adjustDetails(adjustTarget.value.id, {
+    const payload = {
       action: adjustAction.value,
       count: adjustCount.value
-    })
+    }
+    if (adjustAction.value === 'add') {
+      if (adjustUseStartDate.value) {
+        payload.use_start_date = adjustUseStartDate.value
+      }
+      if (adjustUseEndDate.value) {
+        payload.use_end_date = adjustUseEndDate.value
+      }
+    }
+    const resp = await earthDataAPI.adjustDetails(adjustTarget.value.id, payload)
     if (resp.status) {
       // update current row issue_count
       const newCount = resp.data?.issue_count

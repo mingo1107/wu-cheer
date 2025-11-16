@@ -126,7 +126,7 @@ class EarthDataService
     }
 
     // add/remove detail rows and update issue_count atomically
-    public function adjustDetails(int $earthDataId, string $action, int $count): array
+    public function adjustDetails(int $earthDataId, string $action, int $count, ?string $useStartDate = null, ?string $useEndDate = null): array
     {
         $earthData = $this->repo->find($earthDataId);
         if (! $earthData) {
@@ -134,9 +134,9 @@ class EarthDataService
         }
 
         $affected = 0;
-        DB::transaction(function () use (&$affected, $action, $count, $earthData) {
+        DB::transaction(function () use (&$affected, $action, $count, $earthData, $useStartDate, $useEndDate) {
             if ($action === 'add') {
-                $affected = $this->detailRepo->addDetails($earthData->id, (string) ($earthData->flow_control_no ?? ''), $count);
+                $affected = $this->detailRepo->addDetails($earthData->id, (string) ($earthData->flow_control_no ?? ''), $count, $useStartDate, $useEndDate);
                 $earthData->increment('issue_count', $affected);
             } else {
                 $affected = $this->detailRepo->removeDetails($earthData->id, $count);

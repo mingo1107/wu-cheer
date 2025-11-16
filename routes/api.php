@@ -79,6 +79,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('earth-data/{id}/details/recycle', [\App\Http\Controllers\EarthDataUsageController::class, 'recycleDetails'])->name('api.earth-data.details.recycle');
     // 批量更新明細狀態
     Route::post('earth-data/{id}/details/batch-update-status', [\App\Http\Controllers\EarthDataUsageController::class, 'batchUpdateStatus'])->name('api.earth-data.details.batch-update-status');
+    // 批量更新明細的使用起訖日期
+    Route::post('earth-data/{id}/details/batch-update-dates', [\App\Http\Controllers\EarthDataUsageController::class, 'batchUpdateDates'])->name('api.earth-data.details.batch-update-dates');
     // 取得使用統計
     Route::get('earth-data/{id}/usage/stats', [\App\Http\Controllers\EarthStatisticsController::class, 'stats'])->name('api.earth-data.usage-stats');
 

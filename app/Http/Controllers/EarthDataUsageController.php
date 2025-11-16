@@ -9,6 +9,7 @@ use App\Exports\EarthDataDetailsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class EarthDataUsageController extends Controller
 {
@@ -224,6 +225,62 @@ class EarthDataUsageController extends Controller
             ], "成功{$actionLabel} {$updated} 筆明細"));
         } catch (\Exception $e) {
             return response()->json($this->apiOutput->failFormat('批量更新失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 批量更新明細的使用起訖日期
+     */
+    public function batchUpdateDates(Request $request, int $id): JsonResponse
+    {
+        try {
+            $earthData = EarthData::query()->find($id);
+            if (! $earthData) {
+                return response()->json($this->apiOutput->failFormat('土單資料不存在', [], 404));
+            }
+
+            if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
+                if ((int)$earthData->company_id !== (int)auth('api')->user()->company_id) {
+                    return response()->json($this->apiOutput->failFormat('無權限存取', [], 403));
+                }
+            }
+
+            $validator = Validator::make($request->all(), [
+                'detail_ids'     => 'required|array',
+                'detail_ids.*'   => 'integer',
+                'use_start_date' => 'nullable|date',
+                'use_end_date'   => 'nullable|date|after_or_equal:use_start_date',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
+            }
+
+            $detailIds    = $request->input('detail_ids', []);
+            $useStartDate = $request->input('use_start_date');
+            $useEndDate   = $request->input('use_end_date');
+
+            if (empty($detailIds)) {
+                return response()->json($this->apiOutput->failFormat('請選擇要更新的明細', [], 400));
+            }
+
+            // 驗證明細是否屬於此土單
+            $details = EarthDataDetail::query()
+                ->where('earth_data_id', $id)
+                ->whereIn('id', $detailIds)
+                ->get();
+
+            if ($details->count() !== count($detailIds)) {
+                return response()->json($this->apiOutput->failFormat('部分明細不存在或不屬於此土單', [], 400));
+            }
+
+            $updated = $this->service->batchUpdateDatesByIds($id, $detailIds, $useStartDate, $useEndDate);
+
+            return response()->json($this->apiOutput->successFormat([
+                'updated_count' => $updated,
+            ], '批量更新日期成功'));
+        } catch (\Exception $e) {
+            return response()->json($this->apiOutput->failFormat('批量更新日期失敗：' . $e->getMessage(), [], 500));
         }
     }
 }

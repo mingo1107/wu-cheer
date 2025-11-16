@@ -182,17 +182,21 @@ class EarthDataController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'action' => 'required|in:add,remove',
-                'count'  => 'required|integer|min:1',
+                'action'        => 'required|in:add,remove',
+                'count'         => 'required|integer|min:1',
+                'use_start_date' => 'nullable|date',
+                'use_end_date'   => 'nullable|date|after_or_equal:use_start_date',
             ]);
 
             if ($validator->fails()) {
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
-            $action = $request->get('action');
-            $count  = (int) $request->get('count');
-            $result = $this->service->adjustDetails($id, $action, $count);
+            $action        = $request->get('action');
+            $count         = (int) $request->get('count');
+            $useStartDate  = $request->get('use_start_date');
+            $useEndDate    = $request->get('use_end_date');
+            $result        = $this->service->adjustDetails($id, $action, $count, $useStartDate, $useEndDate);
 
             return response()->json($this->apiOutput->successFormat(array_merge($result, [
                 'earth_data_id' => $id,

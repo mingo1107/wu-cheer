@@ -23,7 +23,7 @@ class EarthDataDetailRepository extends BaseRepository
         return $barcode;
     }
 
-    public function addDetails(int $earthDataId, string $flowControlNo, int $count): int
+    public function addDetails(int $earthDataId, string $flowControlNo, int $count, ?string $useStartDate = null, ?string $useEndDate = null): int
     {
         $rows = [];
         $now  = now();
@@ -31,6 +31,8 @@ class EarthDataDetailRepository extends BaseRepository
             $rows[] = [
                 'earth_data_id' => $earthDataId,
                 'barcode'       => $this->generateBarcode($flowControlNo),
+                'use_start_date' => $useStartDate,
+                'use_end_date'   => $useEndDate,
                 'created_at'    => $now,
                 'updated_at'    => $now,
             ];
@@ -81,6 +83,8 @@ class EarthDataDetailRepository extends BaseRepository
                 'd.id',
                 'd.barcode',
                 'd.status',
+                'd.use_start_date',
+                'd.use_end_date',
                 'd.print_at',
                 'd.verified_at',
                 'd.verified_by',
@@ -124,6 +128,39 @@ class EarthDataDetailRepository extends BaseRepository
             ->where('earth_data_id', $earthDataId)
             ->whereIn('id', $detailIds)
             ->update(['status' => $status]);
+    }
+
+    /**
+     * 批量更新明細的使用起訖日期
+     *
+     * @param int $earthDataId
+     * @param array $detailIds
+     * @param string|null $useStartDate
+     * @param string|null $useEndDate
+     * @return int
+     */
+    public function batchUpdateDatesByIds(int $earthDataId, array $detailIds, ?string $useStartDate = null, ?string $useEndDate = null): int
+    {
+        if (empty($detailIds)) {
+            return 0;
+        }
+
+        $updateData = [];
+        if ($useStartDate !== null) {
+            $updateData['use_start_date'] = $useStartDate;
+        }
+        if ($useEndDate !== null) {
+            $updateData['use_end_date'] = $useEndDate;
+        }
+
+        if (empty($updateData)) {
+            return 0;
+        }
+
+        return $this->model->newQuery()
+            ->where('earth_data_id', $earthDataId)
+            ->whereIn('id', $detailIds)
+            ->update($updateData);
     }
 
     /**

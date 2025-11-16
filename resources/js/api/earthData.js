@@ -13,6 +13,7 @@ class EarthDataAPI {
   async updateDetailStatus(id, detailId, status) { return api.put(`/earth-data/${id}/details/${detailId}/status`, { status }); }
   async recycleDetails(id, count) { return api.post(`/earth-data/${id}/details/recycle`, { count }); }
   async batchUpdateStatus(id, detailIds, status) { return api.post(`/earth-data/${id}/details/batch-update-status`, { detail_ids: detailIds, status }); }
+  async batchUpdateDates(id, detailIds, useStartDate, useEndDate) { return api.post(`/earth-data/${id}/details/batch-update-dates`, { detail_ids: detailIds, use_start_date: useStartDate, use_end_date: useEndDate }); }
 }
 
 const earthDataAPI = new EarthDataAPI();

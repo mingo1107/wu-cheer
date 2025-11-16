@@ -15,6 +15,8 @@ class EarthDataDetail extends Model
         'earth_data_id',
         'status',   //0:未列印/1:已列印/2:已使用/3:作廢/4:回收
         'barcode',
+        'use_start_date',
+        'use_end_date',
         'verified_at',
         'verified_by',
         'created_at',

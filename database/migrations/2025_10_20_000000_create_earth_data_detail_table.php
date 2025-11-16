@@ -13,6 +13,8 @@ return new class extends Migration
             $table->unsignedBigInteger('earth_data_id')->index();
             $table->integer('status')->default(0)->comment('狀態：0:未列印/1:已列印/2:已使用/3:作廢');
             $table->string('barcode', 255)->unique();
+            $table->date('use_start_date')->nullable()->comment('使用開始日期');
+            $table->date('use_end_date')->nullable()->comment('使用結束日期');
             $table->timestamp('print_at')->comment('列印時間')->nullable();
             $table->timestamp('verified_at')->comment('驗證時間')->nullable();
             $table->unsignedBigInteger('verified_by')->nullable();
