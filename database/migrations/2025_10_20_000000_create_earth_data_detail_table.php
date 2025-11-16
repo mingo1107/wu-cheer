@@ -18,6 +18,8 @@ return new class extends Migration
             $table->timestamp('print_at')->comment('列印時間')->nullable();
             $table->timestamp('verified_at')->comment('驗證時間')->nullable();
             $table->unsignedBigInteger('verified_by')->nullable();
+            $table->unsignedBigInteger('vehicle_id')->nullable()->comment('車輛 ID');
+            $table->string('driver_name', 255)->nullable()->comment('司機名字');
             $table->timestamps();
 
             // Optional FK (uncomment if you want DB-level constraints)

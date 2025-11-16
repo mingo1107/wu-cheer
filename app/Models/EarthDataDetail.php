@@ -19,6 +19,8 @@ class EarthDataDetail extends Model
         'use_end_date',
         'verified_at',
         'verified_by',
+        'vehicle_id',
+        'driver_name',
         'created_at',
         'updated_at',
     ];
@@ -28,6 +30,7 @@ class EarthDataDetail extends Model
         'status'        => 'integer',
         'verified_at'   => 'datetime',
         'verified_by'   => 'integer',
+        'vehicle_id'    => 'integer',
         'print_at'      => 'datetime',
     ];
 
@@ -51,6 +54,14 @@ class EarthDataDetail extends Model
     public function earthData()
     {
         return $this->belongsTo(EarthData::class, 'earth_data_id');
+    }
+
+    /**
+     * 關聯到車輛
+     */
+    public function vehicle()
+    {
+        return $this->belongsTo(CleanerVehicle::class, 'vehicle_id');
     }
 
     /**

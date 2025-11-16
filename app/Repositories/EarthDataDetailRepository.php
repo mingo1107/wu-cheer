@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Models\EarthDataDetail;
@@ -73,91 +74,38 @@ class EarthDataDetailRepository extends BaseRepository
     }
 
     /**
-     * 核銷明細（根據 barcode）
+     * 更新明細為已核銷狀態（純資料庫操作）
      *
-     * @param string $barcode
-     * @param int $verifierId 核銷人員 ID（verifiers 表）
-     * @return array|null 返回更新後的明細資料，失敗返回 null
+     * @param int $detailId
+     * @param int $verifierId 核銷人員 ID
+     * @param int|null $vehicleId 車輛 ID
+     * @param string|null $driverName 司機名字
+     * @return bool
      */
-    public function verifyByBarcode(string $barcode, int $verifierId): ?array
+    public function markAsVerified(int $detailId, int $verifierId, ?int $vehicleId = null, ?string $driverName = null): bool
     {
-        $detail = $this->findByBarcode($barcode);
-        
+        $detail = $this->model->find($detailId);
         if (!$detail) {
-            return null;
+            return false;
         }
 
-        // 檢查是否已經核銷
-        if ($detail->status === EarthDataDetail::STATUS_USED && $detail->verified_at !== null) {
-            return [
-                'success' => false,
-                'message' => '此 barcode 已核銷',
-                'detail' => $detail
-            ];
-        }
-
-        // 檢查狀態是否可核銷（必須是已列印狀態）
-        if ($detail->status !== EarthDataDetail::STATUS_PRINTED) {
-            return [
-                'success' => false,
-                'message' => '此 barcode 狀態不允許核銷（必須為已列印狀態）',
-                'detail' => $detail
-            ];
-        }
-
-        // 執行核銷
-        $updated = $detail->update([
+        $updateData = [
             'status' => EarthDataDetail::STATUS_USED,
             'verified_at' => now(),
-            'verified_by' => $verifierId, // 注意：這裡儲存的是 verifier_id，但欄位名稱是 verified_by
-        ]);
-
-        if (!$updated) {
-            return null;
-        }
-
-        // 重新載入資料
-        $detail->refresh();
-
-        return [
-            'success' => true,
-            'message' => '核銷成功',
-            'detail' => $detail
-        ];
-    }
-
-    /**
-     * 批量核銷（根據 barcode 列表）
-     *
-     * @param array $barcodes barcode 陣列
-     * @param int $verifierId 核銷人員 ID
-     * @return array 返回結果統計
-     */
-    public function batchVerifyByBarcodes(array $barcodes, int $verifierId): array
-    {
-        $results = [
-            'total' => count($barcodes),
-            'success' => 0,
-            'failed' => 0,
-            'errors' => []
+            'verified_by' => $verifierId,
         ];
 
-        foreach ($barcodes as $barcode) {
-            $result = $this->verifyByBarcode($barcode, $verifierId);
-            
-            if ($result && $result['success']) {
-                $results['success']++;
-            } else {
-                $results['failed']++;
-                $results['errors'][] = [
-                    'barcode' => $barcode,
-                    'message' => $result['message'] ?? '核銷失敗'
-                ];
-            }
+        if ($vehicleId !== null) {
+            $updateData['vehicle_id'] = $vehicleId;
         }
 
-        return $results;
+        if ($driverName !== null) {
+            $updateData['driver_name'] = $driverName;
+        }
+
+        return $detail->update($updateData);
     }
+
 
     /**
      * 取得指定工程的使用明細（含核銷人員姓名）
@@ -172,13 +120,14 @@ class EarthDataDetailRepository extends BaseRepository
             ->from($this->model->getTable() . ' as d')
             ->leftJoin('users as u', 'u.id', '=', 'd.verified_by')
             ->leftJoin('verifiers as v', 'v.id', '=', 'd.verified_by')
+            ->leftJoin('cleaner_vehicles as cv', 'cv.id', '=', 'd.vehicle_id')
             ->where('d.earth_data_id', $earthDataId);
-        
+
         // 狀態篩選
         if ($status !== null) {
             $query->where('d.status', $status);
         }
-        
+
         return $query->orderByDesc('d.id')
             ->get([
                 'd.id',
@@ -189,7 +138,10 @@ class EarthDataDetailRepository extends BaseRepository
                 'd.print_at',
                 'd.verified_at',
                 'd.verified_by',
+                'd.vehicle_id',
+                'd.driver_name',
                 DB::raw('COALESCE(u.name, v.name) as verified_by_name'),
+                DB::raw('CONCAT(cv.front_plate, IF(cv.rear_plate IS NOT NULL AND cv.rear_plate != "", CONCAT(" / ", cv.rear_plate), "")) as vehicle_plate'),
                 'd.created_at',
             ]);
     }
@@ -292,7 +244,7 @@ class EarthDataDetailRepository extends BaseRepository
         $used = (clone $base)->where('status', \App\Models\EarthDataDetail::STATUS_USED)->count();
         $voided = (clone $base)->where('status', \App\Models\EarthDataDetail::STATUS_VOIDED)->count();
         $recycled = (clone $base)->where('status', \App\Models\EarthDataDetail::STATUS_RECYCLED)->count();
-        
+
         return [
             'total'    => (int) $total,
             'printed'  => (int) $printed,

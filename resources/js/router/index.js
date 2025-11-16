@@ -48,15 +48,6 @@ const routes = [
         }
       },
       {
-        path: 'verifier',
-        name: 'Verifier',
-        component: () => import('../pages/Verifier.vue'),
-        meta: {
-          title: '核銷人員管理 | 土方石清運管理系統',
-          requiresAuth: true
-        }
-      },
-      {
         path: 'customer',
         name: 'Customer',
         component: () => import('../pages/Customer.vue'),
@@ -109,8 +100,35 @@ const routes = [
           title: '土單使用統計表 | 土方石清運管理系統',
           requiresAuth: true
         }
-      }
+      },
+      {
+        path: 'verifier',
+        name: 'Verifier',
+        component: () => import('../pages/Verifier.vue'),
+        meta: {
+          title: '核銷人員管理 | 土方石清運管理系統',
+          requiresAuth: true
+        }
+      },
     ]
+  },
+  {
+    path: '/verifier/login',
+    name: 'VerifierLogin',
+    component: () => import('../pages/verifierPlatform/Login.vue'),
+    meta: { 
+      title: '核銷平台登入 | 土方石清運管理系統',
+      requiresVerifierAuth: false 
+    }
+  },
+  {
+    path: '/verifier/dashboard',
+    name: 'VerifierDashboard',
+    component: () => import('../pages/verifierPlatform/Dashboard.vue'),
+    meta: { 
+      title: '核銷作業 | 土方石清運管理系統',
+      requiresVerifierAuth: true
+    }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -134,23 +152,48 @@ router.beforeEach((to, from, next) => {
     document.title = to.meta.title;
   }
 
-  // 檢查使用者認證狀態
-  const userData = localStorage.getItem('user');
-  const token = localStorage.getItem('token');
-  const isAuthenticated = userData !== null && token !== null;
+  // 檢查是否為核銷平台路由
+  const isVerifierRoute = to.path.startsWith('/verifier');
+  
+  if (isVerifierRoute) {
+    // 核銷平台路由處理
+    const verifierData = localStorage.getItem('verifier_user');
+    const verifierToken = localStorage.getItem('verifier_token');
+    const isVerifierAuthenticated = verifierData !== null && verifierToken !== null;
 
-  // 如果已登入且要前往登入頁，重導向到儀表板
-  if (to.path === '/login' && isAuthenticated) {
-    next('/dashboard');
-    return;
-  }
-
-  // 檢查是否需要認證
-  if (to.meta.requiresAuth) {
-    if (!isAuthenticated) {
-      // 未登入，重導向到登入頁
-      next('/login');
+    // 如果已登入且要前往登入頁，重導向到儀表板
+    if (to.path === '/verifier/login' && isVerifierAuthenticated) {
+      next('/verifier/dashboard');
       return;
+    }
+
+    // 檢查是否需要核銷平台認證
+    if (to.meta.requiresVerifierAuth) {
+      if (!isVerifierAuthenticated) {
+        // 未登入，重導向到核銷平台登入頁
+        next('/verifier/login');
+        return;
+      }
+    }
+  } else {
+    // CMS 後台路由處理
+    const userData = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const isAuthenticated = userData !== null && token !== null;
+
+    // 如果已登入且要前往登入頁，重導向到儀表板
+    if (to.path === '/login' && isAuthenticated) {
+      next('/dashboard');
+      return;
+    }
+
+    // 檢查是否需要認證
+    if (to.meta.requiresAuth) {
+      if (!isAuthenticated) {
+        // 未登入，重導向到登入頁
+        next('/login');
+        return;
+      }
     }
   }
 

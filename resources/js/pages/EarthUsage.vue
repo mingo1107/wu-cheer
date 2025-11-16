@@ -157,6 +157,7 @@
                   <th class="px-3 py-2 text-left">使用起迄日</th>
                   <th class="px-3 py-2 text-left">列印時間</th>
                   <th class="px-3 py-2 text-left">核銷人員/時間</th>
+                  <th class="px-3 py-2 text-left">車號/司機</th>
                   <th class="px-3 py-2 text-left">建立時間</th>
                   <th class="px-3 py-2 text-left">操作</th>
                 </tr>
@@ -188,6 +189,13 @@
                     </div>
                     <span v-else class="text-gray-400">-</span>
                   </td>
+                  <td class="px-3 py-2">
+                    <div v-if="d.vehicle_plate || d.driver_name">
+                      <div v-if="d.vehicle_plate" class="font-medium">{{ d.vehicle_plate }}</div>
+                      <div v-if="d.driver_name" class="text-xs text-gray-500">{{ d.driver_name }}</div>
+                    </div>
+                    <span v-else class="text-gray-400">-</span>
+                  </td>
                   <td class="px-3 py-2">{{ formatDateTimeShort(d.created_at) }}</td>
                   <td class="px-3 py-2">
                     <button
@@ -207,7 +215,7 @@
                   </td>
                 </tr>
                 <tr v-if="details.length === 0">
-                  <td class="px-3 py-6 text-center text-gray-500" colspan="9">無明細</td>
+                  <td class="px-3 py-6 text-center text-gray-500" colspan="10">無明細</td>
                 </tr>
               </tbody>
             </table>

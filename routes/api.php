@@ -8,6 +8,8 @@ use App\Http\Controllers\CleanerController;
 use App\Http\Controllers\EarthDataController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VerifierController;
+use App\Http\Controllers\VerifierPlatform\VerifierAccountController;
+use App\Http\Controllers\VerifierPlatform\VerifierVerifyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +27,26 @@ use Illuminate\Support\Facades\Route;
 Route::group([], function () {
     // 帳戶登入
     Route::post('account/login', [AccountController::class, 'login'])->name('api.account.login');
+});
+
+// 核銷平台路由
+Route::prefix('verifier-platform')->group(function () {
+    // 公開路由 - 不需要認證
+    Route::post('account/login', [VerifierAccountController::class, 'login'])->name('api.verifier-platform.account.login');
+    
+    // 需要認證的路由
+    Route::middleware('auth:verifier')->group(function () {
+        // 核銷人員登出
+        Route::post('account/logout', [VerifierAccountController::class, 'logout'])->name('api.verifier-platform.account.logout');
+        // 取得目前核銷人員資訊
+        Route::get('account/me', [VerifierAccountController::class, 'me'])->name('api.verifier-platform.account.me');
+        
+        // 核銷作業
+        Route::post('verify/pre-check', [VerifierVerifyController::class, 'preCheck'])->name('api.verifier-platform.verify.pre-check');
+        Route::post('verify', [VerifierVerifyController::class, 'verify'])->name('api.verifier-platform.verify');
+        Route::post('verify/batch', [VerifierVerifyController::class, 'batchVerify'])->name('api.verifier-platform.verify.batch');
+        Route::get('verify/stats', [VerifierVerifyController::class, 'stats'])->name('api.verifier-platform.verify.stats');
+    });
 });
 
 // 需要認證的路由

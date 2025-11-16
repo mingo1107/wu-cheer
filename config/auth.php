@@ -44,6 +44,10 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
+        'verifier' => [
+            'driver' => 'jwt',
+            'provider' => 'verifiers',
+        ],
     ],
 
     /*
@@ -67,6 +71,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+        'verifiers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Verifier::class,
         ],
 
         // 'users' => [

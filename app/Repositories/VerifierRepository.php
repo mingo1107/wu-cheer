@@ -70,18 +70,16 @@ class VerifierRepository extends BaseRepository
     }
 
     /**
-     * 根據帳號取得核銷人員資料
+     * 根據帳號取得核銷人員資料（登入用，不檢查 company_id）
      *
      * @param string $account
      * @return Verifier|null
      */
     public function findByAccount(string $account): ?Verifier
     {
-        $query = $this->model->newQuery();
-        if (auth('api')->check() && isset(auth('api')->user()->company_id)) {
-            $query->where('company_id', auth('api')->user()->company_id);
-        }
-        return $query->where('account', $account)->first();
+        return $this->model->newQuery()
+            ->where('account', $account)
+            ->first();
     }
 
     /**
