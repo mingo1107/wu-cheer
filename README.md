@@ -23,13 +23,9 @@
 
 `$ composer dump-autoload`
 
-`$ php artisan db:seed --class=AuthoritiesSeeder`
-
-`$ php artisan db:seed --class=AuthoritiesToPersonnelSeeder`
-
 ### Installation nodejs
 
-`$ nvm install v15.14`
+`$ nvm install v18`
 
 `$ npm install`
 
