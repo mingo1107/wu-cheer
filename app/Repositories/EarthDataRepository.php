@@ -110,4 +110,41 @@ class EarthDataRepository extends BaseRepository
     {
         return $this->model->with('cleaners')->find($id, $columns);
     }
+
+    /**
+     * 取得土單工程 datalist（可搜尋、狀態過濾）
+     *
+     * @param string $status 狀態篩選: all|active|inactive
+     * @param string $q 關鍵字（批號/工程/客戶）
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDatalist(string $status = 'all', string $q = ''): \Illuminate\Database\Eloquent\Collection
+    {
+        $query = $this->model->newQuery()
+            ->from('earth_data as e')
+            ->leftJoin('customers as c', 'c.id', '=', 'e.customer_id')
+            ->select('e.id', 'e.batch_no', 'e.project_name', 'e.status', \DB::raw('c.customer_name as customer_name'));
+
+        // 公司範圍
+        if (Auth::guard('api')->check() && isset(Auth::guard('api')->user()->company_id)) {
+            $query->where('e.company_id', Auth::guard('api')->user()->company_id);
+        }
+
+        // 狀態篩選
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $query->where('e.status', $status);
+        }
+
+        // 關鍵字搜尋
+        $q = trim($q);
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('e.batch_no', 'like', "%{$q}%")
+                    ->orWhere('e.project_name', 'like', "%{$q}%")
+                    ->orWhere('c.customer_name', 'like', "%{$q}%");
+            });
+        }
+
+        return $query->orderByDesc('e.created_at')->limit(300)->get();
+    }
 }

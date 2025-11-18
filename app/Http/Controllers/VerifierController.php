@@ -77,20 +77,35 @@ class VerifierController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->verifierService->logFailure([
+                    'remark' => '建立核銷人員驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
             // 額外的業務邏輯驗證
             $validationErrors = $this->verifierService->validateVerifierData($request->all());
             if (! empty($validationErrors)) {
+                $this->verifierService->logFailure([
+                    'remark' => '建立核銷人員業務邏輯驗證失敗：' . json_encode($validationErrors)
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validationErrors, 422));
             }
 
             $verifier = $this->verifierService->createVerifier($request->all());
 
+            // 記錄使用者操作
+            $this->verifierService->logSuccess([
+                'data_id' => $verifier['verifier']['id'] ?? 0,
+                'remark' => '建立核銷人員：' . ($verifier['verifier']['name'] ?? '')
+            ]);
+
             return response()->json($this->apiOutput->successFormat($verifier, '核銷人員建立成功'), 201);
 
         } catch (\Exception $e) {
+            $this->verifierService->logFailure([
+                'remark' => '建立核銷人員系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('建立核銷人員失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -158,20 +173,38 @@ class VerifierController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->verifierService->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新核銷人員驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
             // 額外的業務邏輯驗證
             $validationErrors = $this->verifierService->validateVerifierData($request->all(), $id);
             if (! empty($validationErrors)) {
+                $this->verifierService->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新核銷人員業務邏輯驗證失敗：' . json_encode($validationErrors)
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validationErrors, 422));
             }
 
             $verifier = $this->verifierService->updateVerifier($id, $request->all());
 
+            // 記錄使用者操作
+            $this->verifierService->logSuccess([
+                'data_id' => $id,
+                'remark' => '更新核銷人員 ID：' . $id
+            ]);
+
             return response()->json($this->apiOutput->successFormat($verifier, '核銷人員更新成功'));
 
         } catch (\Exception $e) {
+            $this->verifierService->logFailure([
+                'data_id' => $id,
+                'remark' => '更新核銷人員系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('更新核銷人員失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -188,12 +221,26 @@ class VerifierController extends Controller
             $deleted = $this->verifierService->deleteVerifier($id);
 
             if (! $deleted) {
+                $this->verifierService->logFailure([
+                    'data_id' => $id,
+                    'remark' => '刪除核銷人員失敗：核銷人員不存在或刪除失敗'
+                ]);
                 return response()->json($this->apiOutput->failFormat('核銷人員不存在或刪除失敗', [], 404));
             }
+
+            // 記錄使用者操作
+            $this->verifierService->logSuccess([
+                'data_id' => $id,
+                'remark' => '刪除核銷人員 ID：' . $id
+            ]);
 
             return response()->json($this->apiOutput->successFormat(null, '核銷人員刪除成功'));
 
         } catch (\Exception $e) {
+            $this->verifierService->logFailure([
+                'data_id' => $id,
+                'remark' => '刪除核銷人員系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('刪除核銷人員失敗：' . $e->getMessage(), [], 500));
         }
     }

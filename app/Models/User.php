@@ -23,6 +23,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -40,6 +41,7 @@ class User extends Authenticatable implements JWTSubject
         'name'       => '',
         'email'      => '',
         'password'   => '',
+        'role'       => 1, // 預設為一般使用者
     ];
 
     const CASTS = [

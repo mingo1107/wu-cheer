@@ -184,6 +184,8 @@ export function useAuth() {
     const isAuthenticated = computed(() => !!user.value);
     const userName = computed(() => user.value?.name || '');
     const userEmail = computed(() => user.value?.email || '');
+    // 檢查是否為管理員 (role === 0)
+    const isAdmin = computed(() => user.value?.role === 0);
 
     return {
         // 狀態
@@ -195,6 +197,7 @@ export function useAuth() {
         isAuthenticated,
         userName,
         userEmail,
+        isAdmin,
         
         // 方法
         login,

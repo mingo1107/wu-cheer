@@ -8,12 +8,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class CustomerService
+class CustomerService extends BaseService
 {
     protected $customerRepository;
 
     public function __construct(CustomerRepository $customerRepository)
     {
+        parent::__construct();
         $this->customerRepository = $customerRepository;
     }
 

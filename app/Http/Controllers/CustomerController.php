@@ -80,20 +80,35 @@ class CustomerController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->customerService->logFailure([
+                    'remark' => '建立客戶驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
             // 額外的業務邏輯驗證
             $validationErrors = $this->customerService->validateCustomerData($request->all());
             if (! empty($validationErrors)) {
+                $this->customerService->logFailure([
+                    'remark' => '建立客戶業務邏輯驗證失敗：' . json_encode($validationErrors)
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validationErrors, 422));
             }
 
             $customer = $this->customerService->createCustomer($request->all());
 
+            // 記錄使用者操作
+            $this->customerService->logSuccess([
+                'data_id' => $customer->id ?? 0,
+                'remark' => '建立客戶：' . ($customer->customer_name ?? '')
+            ]);
+
             return response()->json($this->apiOutput->successFormat($customer, '客戶建立成功'), 201);
 
         } catch (\Exception $e) {
+            $this->customerService->logFailure([
+                'remark' => '建立客戶系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('建立客戶失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -165,20 +180,38 @@ class CustomerController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->customerService->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新客戶驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
             // 額外的業務邏輯驗證
             $validationErrors = $this->customerService->validateCustomerData($request->all(), $id);
             if (! empty($validationErrors)) {
+                $this->customerService->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新客戶業務邏輯驗證失敗：' . json_encode($validationErrors)
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validationErrors, 422));
             }
 
             $customer = $this->customerService->updateCustomer($id, $request->all());
 
+            // 記錄使用者操作
+            $this->customerService->logSuccess([
+                'data_id' => $id,
+                'remark' => '更新客戶 ID：' . $id
+            ]);
+
             return response()->json($this->apiOutput->successFormat($customer, '客戶更新成功'));
 
         } catch (\Exception $e) {
+            $this->customerService->logFailure([
+                'data_id' => $id,
+                'remark' => '更新客戶系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('更新客戶失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -195,12 +228,26 @@ class CustomerController extends Controller
             $deleted = $this->customerService->deleteCustomer($id);
 
             if (! $deleted) {
+                $this->customerService->logFailure([
+                    'data_id' => $id,
+                    'remark' => '刪除客戶失敗：客戶不存在或刪除失敗'
+                ]);
                 return response()->json($this->apiOutput->failFormat('客戶不存在或刪除失敗', [], 404));
             }
+
+            // 記錄使用者操作
+            $this->customerService->logSuccess([
+                'data_id' => $id,
+                'remark' => '刪除客戶 ID：' . $id
+            ]);
 
             return response()->json($this->apiOutput->successFormat(null, '客戶刪除成功'));
 
         } catch (\Exception $e) {
+            $this->customerService->logFailure([
+                'data_id' => $id,
+                'remark' => '刪除客戶系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('刪除客戶失敗：' . $e->getMessage(), [], 500));
         }
     }

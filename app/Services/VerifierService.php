@@ -8,12 +8,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class VerifierService
+class VerifierService extends BaseService
 {
     protected $verifierRepository;
 
     public function __construct(VerifierRepository $verifierRepository)
     {
+        parent::__construct();
         $this->verifierRepository = $verifierRepository;
     }
 

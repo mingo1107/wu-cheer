@@ -4,12 +4,14 @@ namespace App\Services;
 use App\Repositories\EarthDataRepository;
 use App\Repositories\EarthDataDetailRepository;
 
-class EarthStatisticsService
+class EarthStatisticsService extends BaseService
 {
     public function __construct(
         private EarthDataRepository $earthRepo,
         private EarthDataDetailRepository $detailRepo,
-    ) {}
+    ) {
+        parent::__construct();
+    }
 
     public function getEarthData(int $id)
     {

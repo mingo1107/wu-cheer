@@ -85,6 +85,7 @@
                   <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">使用者</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">電子郵件</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">狀態</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">建立時間</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -106,6 +107,14 @@
                     </td>
                     <td class="td-base">
                       <div class="text-sm text-gray-900">{{ user.email || '未知郵件' }}</div>
+                    </td>
+                    <td class="td-base">
+                      <span v-if="user.role === 0" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                        管理員
+                      </span>
+                      <span v-else class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                        一般使用者
+                      </span>
                     </td>
                     <td class="td-base">
                       <span v-if="user.email_verified_at" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -213,6 +222,18 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 :placeholder="isEditing ? '留空表示不修改密碼' : '請再次輸入密碼'"
               >
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
+              <select
+                v-model="form.role"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              >
+                <option :value="1">一般使用者</option>
+                <option :value="0">管理員</option>
+              </select>
             </div>
 
             <!-- 錯誤訊息 -->
@@ -325,7 +346,7 @@ if (!Array.isArray(dataList.value)) {
 }
 
 // 表單資料（由後端 show/0 取得預設值）
-const form = ref({ id: null, name: '', email: '', password: '', password_confirmation: '' });
+const form = ref({ id: null, name: '', email: '', password: '', password_confirmation: '', role: 1 });
 
 const loadUserDefaults = async () => {
   try {
@@ -397,7 +418,8 @@ const openEditModal = (user) => {
     name: user.name || '',
     email: user.email || '',
     password: '',
-    password_confirmation: ''
+    password_confirmation: '',
+    role: user.role !== undefined ? user.role : 1
   };
   error.value = null;
   showModal.value = true;

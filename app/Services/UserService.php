@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 
-class UserService
+class UserService extends BaseService
 {
     protected $userRepository;
 
     public function __construct(UserRepository $userRepository)
     {
+        parent::__construct();
         $this->userRepository = $userRepository;
     }
 
@@ -54,6 +55,7 @@ class UserService
                     'name' => $user->name,
                     'email' => $user->email,
                     'email_verified_at' => $user->email_verified_at,
+                    'role' => $user->role ?? 1,
                     'created_at' => $user->created_at,
                 ]
             ];
@@ -84,6 +86,7 @@ class UserService
                 'name' => $user->name,
                 'email' => $user->email,
                 'email_verified_at' => $user->email_verified_at,
+                'role' => $user->role ?? 1,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ]
@@ -116,6 +119,7 @@ class UserService
                     'name' => $user->name,
                     'email' => $user->email,
                     'email_verified_at' => $user->email_verified_at,
+                    'role' => $user->role ?? 1,
                     'updated_at' => $user->updated_at,
                 ]
             ];

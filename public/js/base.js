@@ -87,11 +87,11 @@ class BaseAPI {
                     break;
                 case 403:
                     console.log('權限不足');
-                    this.showAlert('權限不足，無法執行此操作');
+                    this.showAlert('權限不足，無法執行此操作', 'error');
                     break;
                 case 404:
                     console.log('API 端點不存在');
-                    this.showAlert('請求的資源不存在');
+                    this.showAlert('請求的資源不存在', 'error');
                     break;
                 case 422:
                     console.log('驗證錯誤:', data);
@@ -99,17 +99,17 @@ class BaseAPI {
                     break;
                 case 500:
                     console.log('伺服器錯誤');
-                    this.showAlert('伺服器錯誤，請稍後再試');
+                    this.showAlert('伺服器錯誤，請稍後再試', 'error');
                     break;
                 default:
-                    this.showAlert('請求失敗，請稍後再試');
+                    this.showAlert('請求失敗，請稍後再試', 'error');
             }
         } else if (error.request) {
             console.log('網路錯誤');
-            this.showAlert('網路連線錯誤，請檢查網路狀態');
+            this.showAlert('網路連線錯誤，請檢查網路狀態', 'error');
         } else {
             console.log('請求設定錯誤');
-            this.showAlert('請求設定錯誤');
+            this.showAlert('請求設定錯誤', 'error');
         }
     }
 
@@ -125,9 +125,16 @@ class BaseAPI {
     /**
      * 顯示警告訊息
      */
-    showAlert(message) {
-        // 可以在這裡添加統一的警告顯示邏輯
-        alert(message);
+    showAlert(message, type = 'error') {
+        // 嘗試使用 Toast 通知系統
+        if (window.showToastNotification) {
+            window.showToastNotification(message, type);
+        } else {
+            // 如果 Toast 系統未初始化，使用 console 記錄
+            console.error('Toast 通知:', message);
+            // 作為後備方案，仍然使用 alert（但應該避免）
+            // alert(message);
+        }
     }
 
     /**
@@ -136,9 +143,10 @@ class BaseAPI {
     showValidationErrors(data) {
         if (data && data.errors) {
             const errorMessages = Object.values(data.errors).flat();
-            this.showAlert('驗證錯誤：\n' + errorMessages.join('\n'));
+            const message = errorMessages.join('、'); // 使用中文頓號分隔
+            this.showAlert('驗證錯誤：' + message, 'error');
         } else if (data && data.message) {
-            this.showAlert('驗證錯誤：' + data.message);
+            this.showAlert('驗證錯誤：' + data.message, 'error');
         }
     }
 

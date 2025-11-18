@@ -38,8 +38,8 @@
               儀表板
             </router-link>
 
-            <!-- 後台管理 下拉選單 -->
-            <div class="relative z-50" @mouseenter="showAdminMenu" @mouseleave="hideAdminMenu">
+            <!-- 後台管理 下拉選單 (僅管理員可見) -->
+            <div v-if="isAdmin" class="relative z-50" @mouseenter="showAdminMenu" @mouseleave="hideAdminMenu">
               <button class="text-gray-700 hover:text-amber-600 px-2 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 flex items-center" :class="{ 'text-amber-600 bg-amber-50': isAdminActive }">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
@@ -56,9 +56,9 @@
                 <router-link to="/verifier" @click="adminMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
                   <i class="fas fa-user-check mr-3"></i> 核銷人員管理
                 </router-link>
-                <div class="flex items-center px-4 py-2 text-sm text-gray-400 cursor-not-allowed">
-                  <i class="fas fa-clipboard-list mr-3"></i> 使用者操作紀錄（開發中）
-                </div>
+                <router-link to="/user-logs" @click="adminMenuOpen = false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600">
+                  <i class="fas fa-clipboard-list mr-3"></i> 使用者操作紀錄
+                </router-link>
               </div>
             </div>
 
@@ -264,16 +264,20 @@
               公告欄
             </router-link>
 
-            <!-- 後台管理 手機版 -->
-            <div class="border-t border-gray-200 my-2"></div>
-            <div class="text-sm font-medium text-gray-500 px-3 py-2">後台管理</div>
-            <router-link to="/user" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/user' }">
-              使用者管理
-            </router-link>
-            <router-link to="/verifier" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/verifier' }">
-              核銷人員管理
-            </router-link>
-            <div class="px-6 py-2 text-base text-gray-400">使用者操作紀錄（開發中）</div>
+            <!-- 後台管理 手機版 (僅管理員可見) -->
+            <template v-if="isAdmin">
+              <div class="border-t border-gray-200 my-2"></div>
+              <div class="text-sm font-medium text-gray-500 px-3 py-2">後台管理</div>
+              <router-link to="/user" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/user' }">
+                使用者管理
+              </router-link>
+              <router-link to="/verifier" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/verifier' }">
+                核銷人員管理
+              </router-link>
+              <router-link to="/user-logs" @click="mobileMenuOpen = false" class="text-gray-700 hover:text-amber-600 block px-6 py-2 rounded-md text-base font-medium transition-colors duration-200" :class="{ 'text-amber-600 bg-amber-50': $route.path === '/user-logs' }">
+                使用者操作紀錄
+              </router-link>
+            </template>
 
             <!-- 資料設定 手機版 -->
             <div class="border-t border-gray-200 my-2"></div>
@@ -373,7 +377,7 @@ import { useAuth } from '../composables/useAuth.js';
 import Toast from './Toast.vue';
 
 const router = useRouter();
-const { user, logout, isLoading } = useAuth();
+const { user, logout, isLoading, isAdmin, getCurrentUser } = useAuth();
 
 // 響應式資料
 const mobileMenuOpen = ref(false);
@@ -393,7 +397,7 @@ const isEarthSystemActive = computed(() => {
 
 const isAdminActive = computed(() => {
   const adminPaths = ['/user', '/verifier', '/user-logs'];
-  return adminPaths.includes(router.currentRoute.value.path);
+  return adminPaths.some(path => router.currentRoute.value.path.startsWith(path));
 });
 
 const isDataActive = computed(() => {
@@ -458,7 +462,16 @@ const handleClickOutside = (event) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
+  
+  // 如果已登入，自動更新使用者資料（確保取得最新的 role 資訊）
+  if (user.value) {
+    try {
+      await getCurrentUser();
+    } catch (error) {
+      console.error('更新使用者資料失敗:', error);
+    }
+  }
 });
 </script>

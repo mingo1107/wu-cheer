@@ -5,12 +5,13 @@ namespace App\Services;
 use App\Repositories\AnnouncementRepository;
 use Illuminate\Support\Facades\DB;
 
-class AnnouncementService
+class AnnouncementService extends BaseService
 {
     protected AnnouncementRepository $repo;
 
     public function __construct(AnnouncementRepository $repo)
     {
+        parent::__construct();
         $this->repo = $repo;
     }
 

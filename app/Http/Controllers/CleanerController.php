@@ -55,14 +55,27 @@ class CleanerController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $this->service->logFailure([
+                'remark' => '建立清運業者驗證失敗：' . json_encode($validator->errors()->all())
+            ]);
             return response()->json($this->out->failFormat('資料驗證失敗', $validator->errors(), 422));
         }
 
         try {
             $item = $this->service->create($request->all());
+            
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $item->id ?? 0,
+                'remark' => '建立清運業者：' . ($item->cleaner_name ?? '')
+            ]);
+            
             return response()->json($this->out->successFormat($item, '清運業者建立成功'));
         } catch (\Exception $e) {
             Log::error('清運業者建立失敗', ['error' => $e->getMessage()]);
+            $this->service->logFailure([
+                'remark' => '建立清運業者系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->out->failFormat($e->getMessage(), [], 422));
         }
     }
@@ -95,28 +108,66 @@ class CleanerController extends Controller
             'notes'          => 'nullable|string|max:1000',
         ]);
         if ($validator->fails()) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '更新清運業者驗證失敗：' . json_encode($validator->errors()->all())
+            ]);
             return response()->json($this->out->failFormat('資料驗證失敗', $validator->errors(), 422));
         }
 
         try {
             $item = $this->service->update($id, $request->all());
             if (!$item) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新清運業者失敗：清運業者不存在或更新失敗'
+                ]);
                 return response()->json($this->out->failFormat('清運業者不存在或更新失敗', [], 404));
             }
+            
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '更新清運業者 ID：' . $id
+            ]);
+            
             return response()->json($this->out->successFormat($item, '清運業者更新成功'));
         } catch (\Exception $e) {
             Log::error('清運業者更新失敗', ['error' => $e->getMessage()]);
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '更新清運業者系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->out->failFormat($e->getMessage(), [], 422));
         }
     }
 
     public function destroy(int $id): JsonResponse
     {
-        $ok = $this->service->delete($id);
-        if (!$ok) {
-            return response()->json($this->out->failFormat('清運業者不存在或刪除失敗', [], 404));
+        try {
+            $ok = $this->service->delete($id);
+            if (!$ok) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '刪除清運業者失敗：清運業者不存在或刪除失敗'
+                ]);
+                return response()->json($this->out->failFormat('清運業者不存在或刪除失敗', [], 404));
+            }
+            
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '刪除清運業者 ID：' . $id
+            ]);
+            
+            return response()->json($this->out->successFormat(['id' => $id], '清運業者刪除成功'));
+        } catch (\Exception $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '刪除清運業者系統錯誤：' . $e->getMessage()
+            ]);
+            return response()->json($this->out->failFormat('刪除清運業者失敗：' . $e->getMessage(), [], 500));
         }
-        return response()->json($this->out->successFormat(['id' => $id], '清運業者刪除成功'));
     }
 
     // ========== 車輛管理方法 ==========
@@ -154,6 +205,10 @@ class CleanerController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $this->vehicleService->logFailure([
+                'data_id' => $cleanerId,
+                'remark' => '建立車輛驗證失敗：' . json_encode($validator->errors()->all())
+            ]);
             return response()->json($this->out->failFormat('資料驗證失敗', $validator->errors(), 422));
         }
 
@@ -161,9 +216,20 @@ class CleanerController extends Controller
             $data = $request->all();
             $data['cleaner_id'] = $cleanerId;
             $vehicle = $this->vehicleService->create($data);
+            
+            // 記錄使用者操作
+            $this->vehicleService->logSuccess([
+                'data_id' => $vehicle->id ?? 0,
+                'remark' => '建立車輛（清運業者 ID：' . $cleanerId . '）：' . ($vehicle->front_plate ?? '')
+            ]);
+            
             return response()->json($this->out->successFormat($vehicle, '車輛建立成功'));
         } catch (\Exception $e) {
             Log::error('車輛建立失敗', ['error' => $e->getMessage(), 'cleaner_id' => $cleanerId]);
+            $this->vehicleService->logFailure([
+                'data_id' => $cleanerId,
+                'remark' => '建立車輛系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->out->failFormat($e->getMessage(), [], 422));
         }
     }
@@ -187,17 +253,36 @@ class CleanerController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $this->vehicleService->logFailure([
+                'data_id' => $vehicleId,
+                'remark' => '更新車輛驗證失敗：' . json_encode($validator->errors()->all())
+            ]);
             return response()->json($this->out->failFormat('資料驗證失敗', $validator->errors(), 422));
         }
 
         try {
             $vehicle = $this->vehicleService->update($vehicleId, $request->all());
             if (!$vehicle) {
+                $this->vehicleService->logFailure([
+                    'data_id' => $vehicleId,
+                    'remark' => '更新車輛失敗：車輛不存在或更新失敗'
+                ]);
                 return response()->json($this->out->failFormat('車輛不存在或更新失敗', [], 404));
             }
+            
+            // 記錄使用者操作
+            $this->vehicleService->logSuccess([
+                'data_id' => $vehicleId,
+                'remark' => '更新車輛 ID：' . $vehicleId
+            ]);
+            
             return response()->json($this->out->successFormat($vehicle, '車輛更新成功'));
         } catch (\Exception $e) {
             Log::error('車輛更新失敗', ['error' => $e->getMessage(), 'vehicle_id' => $vehicleId]);
+            $this->vehicleService->logFailure([
+                'data_id' => $vehicleId,
+                'remark' => '更新車輛系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->out->failFormat($e->getMessage(), [], 422));
         }
     }
@@ -210,11 +295,26 @@ class CleanerController extends Controller
         try {
             $ok = $this->vehicleService->delete($vehicleId);
             if (!$ok) {
+                $this->vehicleService->logFailure([
+                    'data_id' => $vehicleId,
+                    'remark' => '刪除車輛失敗：車輛不存在或刪除失敗'
+                ]);
                 return response()->json($this->out->failFormat('車輛不存在或刪除失敗', [], 404));
             }
+            
+            // 記錄使用者操作
+            $this->vehicleService->logSuccess([
+                'data_id' => $vehicleId,
+                'remark' => '刪除車輛 ID：' . $vehicleId . '（清運業者 ID：' . $cleanerId . '）'
+            ]);
+            
             return response()->json($this->out->successFormat(['id' => $vehicleId], '車輛刪除成功'));
         } catch (\Exception $e) {
             Log::error('車輛刪除失敗', ['error' => $e->getMessage(), 'vehicle_id' => $vehicleId]);
+            $this->vehicleService->logFailure([
+                'data_id' => $vehicleId,
+                'remark' => '刪除車輛系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->out->failFormat($e->getMessage(), [], 422));
         }
     }

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Formatters\ApiOutput;
@@ -67,6 +68,9 @@ class EarthDataController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->service->logFailure([
+                    'remark' => '建立土單資料驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
@@ -79,8 +83,17 @@ class EarthDataController extends Controller
 
             $item = $this->service->createEarthData($data);
 
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $item->id ?? 0,
+                'remark' => '建立土單資料：' . ($item->batch_no ?? '') . ' - ' . ($item->project_name ?? '')
+            ]);
+
             return response()->json($this->apiOutput->successFormat($item, '土單資料建立成功'), 201);
         } catch (\Exception $e) {
+            $this->service->logFailure([
+                'remark' => '建立土單資料系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('建立土單資料失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -140,6 +153,10 @@ class EarthDataController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新土單資料驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
@@ -151,8 +168,18 @@ class EarthDataController extends Controller
 
             $item = $this->service->updateEarthData($id, $data);
 
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '更新土單資料 ID：' . $id
+            ]);
+
             return response()->json($this->apiOutput->successFormat($item, '土單資料更新成功'));
         } catch (\Exception $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '更新土單資料系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('更新土單資料失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -166,12 +193,118 @@ class EarthDataController extends Controller
             $deleted = $this->service->deleteEarthData($id);
 
             if (! $deleted) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '刪除土單資料失敗：土單資料不存在或刪除失敗'
+                ]);
                 return response()->json($this->apiOutput->failFormat('土單資料不存在或刪除失敗', [], 404));
             }
 
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '刪除土單資料 ID：' . $id
+            ]);
+
             return response()->json($this->apiOutput->successFormat(null, '土單資料刪除成功'));
         } catch (\Exception $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '刪除土單資料系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->apiOutput->failFormat('刪除土單資料失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 批次新增/更新土單資料
+     */
+    public function bulkUpsert(Request $request): JsonResponse
+    {
+        try {
+            $rows = $request->input('rows', []);
+            if (! is_array($rows)) {
+                $this->service->logFailure([
+                    'remark' => '批次新增/更新土單資料失敗：參數格式錯誤'
+                ]);
+                return response()->json($this->apiOutput->failFormat('參數格式錯誤', [], 422));
+            }
+
+            $rules = [
+                'batch_no'        => 'required|string|max:255',
+                'issue_date'      => 'nullable|date',
+                'issue_count'     => 'nullable|integer|min:0',
+                'customer_code'   => 'nullable|string|max:255',
+                'valid_date_from' => 'nullable|date',
+                'valid_date_to'   => 'nullable|date|after_or_equal:valid_date_from',
+                'cleaner_name'    => 'nullable|string|max:255',
+                'project_name'    => 'nullable|string|max:255',
+                'flow_control_no' => 'nullable|string|max:255',
+                'carry_qty'       => 'nullable|numeric|min:0',
+                'carry_soil_type' => 'nullable|string|max:255',
+                'status_desc'     => 'nullable|string|max:255',
+                'remark_desc'     => 'nullable|string',
+                'created_by'      => 'nullable|string|max:255',
+                'updated_by'      => 'nullable|string|max:255',
+                'sys_serial_no'   => 'nullable|string|max:255',
+                'status'          => 'nullable|string|max:50',
+            ];
+
+            foreach ($rows as $i => $row) {
+                $v = Validator::make($row, $rules);
+                if ($v->fails()) {
+                    $this->service->logFailure([
+                        'remark' => '批次新增/更新土單資料驗證失敗：第' . ($i + 1) . '筆資料驗證失敗'
+                    ]);
+                    return response()->json($this->apiOutput->failFormat("第" . ($i + 1) . "筆資料驗證失敗", $v->errors(), 422));
+                }
+            }
+
+            $affected = $this->service->bulkUpsert($rows);
+
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => 0,
+                'remark' => '批次新增/更新土單資料：共 ' . count($rows) . ' 筆，影響 ' . $affected . ' 筆'
+            ]);
+
+            return response()->json($this->apiOutput->successFormat(['affected' => $affected], '批次儲存成功'));
+        } catch (\Exception $e) {
+            $this->service->logFailure([
+                'remark' => '批次新增/更新土單資料系統錯誤：' . $e->getMessage()
+            ]);
+            return response()->json($this->apiOutput->failFormat('批次儲存失敗: ' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 批次刪除土單資料
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            if (! is_array($ids) || empty($ids)) {
+                $this->service->logFailure([
+                    'remark' => '批次刪除土單資料失敗：請提供要刪除的 ID 陣列'
+                ]);
+                return response()->json($this->apiOutput->failFormat('請提供要刪除的 ID 陣列', [], 422));
+            }
+
+            $deleted = $this->service->bulkDelete($ids);
+
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => 0,
+                'remark' => '批次刪除土單資料：共 ' . count($ids) . ' 筆，成功刪除 ' . $deleted . ' 筆'
+            ]);
+
+            return response()->json($this->apiOutput->successFormat(['deleted' => $deleted], '批次刪除成功'));
+        } catch (\Exception $e) {
+            $this->service->logFailure([
+                'remark' => '批次刪除土單資料系統錯誤：' . $e->getMessage()
+            ]);
+            return response()->json($this->apiOutput->failFormat('批次刪除失敗: ' . $e->getMessage(), [], 500));
         }
     }
 
@@ -220,7 +353,9 @@ class EarthDataController extends Controller
         $this->assertSameCompany($earth->company_id);
 
         $limit   = $request->integer('count');
-        if (! is_null($limit) && $limit <= 0) { $limit = null; }
+        if (! is_null($limit) && $limit <= 0) {
+            $limit = null;
+        }
         $details = $this->service->getUnprintedDetails($earth->id, $limit);
         $ids     = $details->pluck('id')->all();
         if (! empty($ids)) {
@@ -247,7 +382,7 @@ class EarthDataController extends Controller
         $this->assertSameCompany($earth->company_id);
 
         $detailIdsInput = $request->input('detail_ids', []);
-        
+
         // 處理逗號分隔的字串或陣列
         if (is_string($detailIdsInput)) {
             $detailIds = array_filter(array_map('intval', explode(',', $detailIdsInput)));
@@ -256,7 +391,7 @@ class EarthDataController extends Controller
         } else {
             $detailIds = [];
         }
-        
+
         if (empty($detailIds)) {
             abort(400, '請選擇要列印的明細');
         }

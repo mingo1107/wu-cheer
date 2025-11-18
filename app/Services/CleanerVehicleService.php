@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class CleanerVehicleService
+class CleanerVehicleService extends BaseService
 {
     protected $vehicleRepo;
     protected $cleanerRepo;
@@ -18,6 +18,7 @@ class CleanerVehicleService
         CleanerVehicleRepository $vehicleRepo,
         CleanerRepository $cleanerRepo
     ) {
+        parent::__construct();
         $this->vehicleRepo = $vehicleRepo;
         $this->cleanerRepo = $cleanerRepo;
     }

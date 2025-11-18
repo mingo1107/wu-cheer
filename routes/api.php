@@ -7,6 +7,7 @@ use App\Http\Controllers\CommonController;
 use App\Http\Controllers\CleanerController;
 use App\Http\Controllers\EarthDataController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserLogController;
 use App\Http\Controllers\VerifierController;
 use App\Http\Controllers\VerifierPlatform\VerifierAccountController;
 use App\Http\Controllers\VerifierPlatform\VerifierVerifyController;
@@ -61,15 +62,25 @@ Route::middleware('auth:api')->group(function () {
     Route::post('account/change-password', [AccountController::class, 'changePassword'])->name('api.account.change-password');
 
     //@ user
-    // 使用者管理 CRUD
-    Route::apiResource('users', UserController::class);
+    // 使用者管理 CRUD (需要管理員權限)
+    Route::middleware('admin')->group(function () {
+        Route::apiResource('users', UserController::class);
+    });
 
     //@ verifier
-    // 核銷人員管理 CRUD
-    Route::apiResource('verifiers', VerifierController::class);
-    // 核銷人員額外功能
-    Route::get('verifiers/active/list', [VerifierController::class, 'active'])->name('api.verifiers.active');
-    Route::get('verifiers/stats/overview', [VerifierController::class, 'stats'])->name('api.verifiers.stats');
+    // 核銷人員管理 CRUD (需要管理員權限)
+    Route::middleware('admin')->group(function () {
+        Route::apiResource('verifiers', VerifierController::class);
+        // 核銷人員額外功能
+        Route::get('verifiers/active/list', [VerifierController::class, 'active'])->name('api.verifiers.active');
+        Route::get('verifiers/stats/overview', [VerifierController::class, 'stats'])->name('api.verifiers.stats');
+    });
+
+    //@ user-log
+    // 使用者操作記錄 (需要管理員權限)
+    Route::middleware('admin')->group(function () {
+        Route::get('user-logs', [UserLogController::class, 'index'])->name('api.user-logs.index');
+    });
 
     //@ customer
     // 客戶管理 CRUD

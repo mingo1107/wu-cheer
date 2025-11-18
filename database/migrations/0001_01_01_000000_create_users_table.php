@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('company_id')->index();
+            $table->tinyInteger('role')->default(1)->comment('0:管理員 1:一般使用者');
             $table->string('name');
             $table->string('email')->index();
             $table->timestamp('email_verified_at')->nullable();

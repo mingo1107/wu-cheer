@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 
-class AccountService
+class AccountService extends BaseService
 {
     protected $userRepository;
 
     public function __construct(UserRepository $userRepository)
     {
+        parent::__construct();
         $this->userRepository = $userRepository;
     }
 
@@ -62,6 +63,7 @@ class AccountService
                     'name' => $user->name,
                     'email' => $user->email,
                     'email_verified_at' => $user->email_verified_at,
+                    'role' => $user->role ?? 1, // 預設為一般使用者
                 ],
                 'token' => $token,
                 'token_type' => 'bearer',
@@ -113,6 +115,7 @@ class AccountService
                 'name' => $user->name,
                 'email' => $user->email,
                 'email_verified_at' => $user->email_verified_at,
+                'role' => $user->role ?? 1, // 預設為一般使用者
             ]
         ];
     }

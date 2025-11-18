@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../pages/Login.vue';
 import Layout from '../components/Layout.vue';
+import { useToast } from '../composables/useToast.js';
 
 const routes = [
   {
@@ -44,7 +45,8 @@ const routes = [
         component: () => import('../pages/User.vue'),
         meta: {
           title: '使用者管理 | 土方石清運管理系統',
-          requiresAuth: true
+          requiresAuth: true,
+          requiresAdmin: true
         }
       },
       {
@@ -107,7 +109,18 @@ const routes = [
         component: () => import('../pages/Verifier.vue'),
         meta: {
           title: '核銷人員管理 | 土方石清運管理系統',
-          requiresAuth: true
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      {
+        path: 'user-logs',
+        name: 'UserLogs',
+        component: () => import('../pages/UserLog.vue'),
+        meta: {
+          title: '使用者操作紀錄 | 土方石清運管理系統',
+          requiresAuth: true,
+          requiresAdmin: true
         }
       },
     ]
@@ -193,6 +206,26 @@ router.beforeEach((to, from, next) => {
         // 未登入，重導向到登入頁
         next('/login');
         return;
+      }
+
+      // 檢查是否需要管理員權限
+      if (to.meta.requiresAdmin) {
+        try {
+          const user = JSON.parse(userData);
+          const isAdmin = user.role === 0;
+          
+          if (!isAdmin) {
+            // 非管理員，重導向到儀表板並顯示錯誤訊息
+            const { error: showErrorToast } = useToast();
+            showErrorToast('您沒有權限訪問此頁面');
+            next('/dashboard');
+            return;
+          }
+        } catch (err) {
+          console.error('解析使用者資料失敗:', err);
+          next('/login');
+          return;
+        }
       }
     }
   }

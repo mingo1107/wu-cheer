@@ -123,13 +123,27 @@ class EarthDataUsageController extends Controller
                 EarthDataDetail::STATUS_VOIDED,
                 EarthDataDetail::STATUS_RECYCLED,
             ])) {
+                $this->service->logFailure([
+                    'data_id' => $detailId,
+                    'remark' => '更新明細狀態失敗：無效的狀態值（土單 ID：' . $id . '，明細 ID：' . $detailId . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('無效的狀態值', [], 400));
             }
 
             $updated = $this->service->updateDetailStatus($detailId, $status);
             if (! $updated) {
+                $this->service->logFailure([
+                    'data_id' => $detailId,
+                    'remark' => '更新明細狀態失敗：更新失敗（土單 ID：' . $id . '，明細 ID：' . $detailId . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('更新狀態失敗', [], 500));
             }
+
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $detailId,
+                'remark' => '更新明細狀態（土單 ID：' . $id . '，明細 ID：' . $detailId . '，狀態：' . EarthDataDetail::getStatusLabel($status) . '）'
+            ]);
 
             return response()->json($this->apiOutput->successFormat([
                 'id' => $detailId,
@@ -137,6 +151,10 @@ class EarthDataUsageController extends Controller
                 'status_label' => EarthDataDetail::getStatusLabel($status),
             ], '更新狀態成功'));
         } catch (\Exception $e) {
+            $this->service->logFailure([
+                'data_id' => $detailId ?? 0,
+                'remark' => '更新明細狀態系統錯誤：' . $e->getMessage() . '（土單 ID：' . $id . '）'
+            ]);
             return response()->json($this->apiOutput->failFormat('更新狀態失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -158,18 +176,36 @@ class EarthDataUsageController extends Controller
 
             $count = (int) $request->input('count', 0);
             if ($count <= 0) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量回收明細失敗：回收數量必須大於 0（土單 ID：' . $id . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('回收數量必須大於 0', [], 400));
             }
 
             $recycled = $this->service->recycleDetails($id, $count);
             if ($recycled === 0) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量回收明細失敗：無可回收的明細（需為已使用狀態）（土單 ID：' . $id . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('無可回收的明細（需為已使用狀態）', [], 400));
             }
+
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '批量回收明細（土單 ID：' . $id . '，請求數量：' . $count . '，成功回收：' . $recycled . ' 筆）'
+            ]);
 
             return response()->json($this->apiOutput->successFormat([
                 'recycled_count' => $recycled,
             ], "成功回收 {$recycled} 筆明細"));
         } catch (\Exception $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '批量回收明細系統錯誤：' . $e->getMessage() . '（土單 ID：' . $id . '）'
+            ]);
             return response()->json($this->apiOutput->failFormat('回收失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -201,6 +237,10 @@ class EarthDataUsageController extends Controller
                 EarthDataDetail::STATUS_VOIDED,
                 EarthDataDetail::STATUS_RECYCLED,
             ])) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量更新明細狀態失敗：無效的狀態值（僅支援作廢或回收）（土單 ID：' . $id . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('無效的狀態值（僅支援作廢或回收）', [], 400));
             }
 
@@ -211,19 +251,38 @@ class EarthDataUsageController extends Controller
                 ->get();
 
             if ($details->count() !== count($detailIds)) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量更新明細狀態失敗：部分明細不存在或不屬於此土單（土單 ID：' . $id . '，請求 ' . count($detailIds) . ' 筆，找到 ' . $details->count() . ' 筆）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('部分明細不存在或不屬於此土單', [], 400));
             }
 
             $updated = $this->service->batchUpdateStatusByIds($id, $detailIds, $status);
             if ($updated === 0) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量更新明細狀態失敗：更新失敗（土單 ID：' . $id . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('更新失敗', [], 500));
             }
 
             $actionLabel = $status === EarthDataDetail::STATUS_VOIDED ? '作廢' : '回收';
+            
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '批量更新明細狀態（土單 ID：' . $id . '，操作：' . $actionLabel . '，請求 ' . count($detailIds) . ' 筆，成功 ' . $updated . ' 筆）'
+            ]);
+
             return response()->json($this->apiOutput->successFormat([
                 'updated_count' => $updated,
             ], "成功{$actionLabel} {$updated} 筆明細"));
         } catch (\Exception $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '批量更新明細狀態系統錯誤：' . $e->getMessage() . '（土單 ID：' . $id . '）'
+            ]);
             return response()->json($this->apiOutput->failFormat('批量更新失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -253,6 +312,10 @@ class EarthDataUsageController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量更新明細日期驗證失敗：' . json_encode($validator->errors()->all()) . '（土單 ID：' . $id . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
@@ -261,6 +324,10 @@ class EarthDataUsageController extends Controller
             $useEndDate   = $request->input('use_end_date');
 
             if (empty($detailIds)) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量更新明細日期失敗：請選擇要更新的明細（土單 ID：' . $id . '）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('請選擇要更新的明細', [], 400));
             }
 
@@ -271,15 +338,29 @@ class EarthDataUsageController extends Controller
                 ->get();
 
             if ($details->count() !== count($detailIds)) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '批量更新明細日期失敗：部分明細不存在或不屬於此土單（土單 ID：' . $id . '，請求 ' . count($detailIds) . ' 筆，找到 ' . $details->count() . ' 筆）'
+                ]);
                 return response()->json($this->apiOutput->failFormat('部分明細不存在或不屬於此土單', [], 400));
             }
 
             $updated = $this->service->batchUpdateDatesByIds($id, $detailIds, $useStartDate, $useEndDate);
 
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '批量更新明細日期（土單 ID：' . $id . '，請求 ' . count($detailIds) . ' 筆，成功 ' . $updated . ' 筆，起日：' . ($useStartDate ?? '無') . '，迄日：' . ($useEndDate ?? '無') . '）'
+            ]);
+
             return response()->json($this->apiOutput->successFormat([
                 'updated_count' => $updated,
             ], '批量更新日期成功'));
         } catch (\Exception $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '批量更新明細日期系統錯誤：' . $e->getMessage() . '（土單 ID：' . $id . '）'
+            ]);
             return response()->json($this->apiOutput->failFormat('批量更新日期失敗：' . $e->getMessage(), [], 500));
         }
     }

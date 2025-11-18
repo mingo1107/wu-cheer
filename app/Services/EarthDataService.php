@@ -8,12 +8,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class EarthDataService
+class EarthDataService extends BaseService
 {
     public function __construct(
         private EarthDataRepository $repo,
         private EarthDataDetailRepository $detailRepo,
     ) {
+        parent::__construct();
     }
 
     public function getEarthDataList(array $filters = [], int $perPage = 15): LengthAwarePaginator

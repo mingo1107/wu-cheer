@@ -6,8 +6,6 @@ use App\Services\CommonService;
 use App\Formatters\ApiOutput;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class CommonController extends Controller
 {
@@ -51,42 +49,7 @@ class CommonController extends Controller
             $status = $request->get('status', 'all');
             $q      = trim((string)$request->get('q', ''));
 
-            $query = DB::table('earth_data as e')
-                ->leftJoin('customers as c', 'c.id', '=', 'e.customer_id')
-                ->select('e.id', 'e.batch_no', 'e.project_name', 'e.status', DB::raw('c.customer_name as customer_name'));
-
-            if (Auth::guard('api')->check() && isset(Auth::guard('api')->user()->company_id)) {
-                $query->where('e.company_id', Auth::guard('api')->user()->company_id);
-            }
-
-            if (in_array($status, ['active', 'inactive'], true)) {
-                $query->where('e.status', $status);
-            }
-
-            if ($q !== '') {
-                $query->where(function ($sub) use ($q) {
-                    $sub->where('e.batch_no', 'like', "%{$q}%")
-                        ->orWhere('e.project_name', 'like', "%{$q}%")
-                        ->orWhere('c.customer_name', 'like', "%{$q}%");
-                });
-            }
-
-            $rows = $query->orderByDesc('e.created_at')->limit(300)->get();
-
-            $data = $rows->map(function ($r) {
-                $text = trim(($r->batch_no ?: '') . ' - ' . ($r->project_name ?: ''));
-                if (!empty($r->customer_name)) {
-                    $text .= ' (' . $r->customer_name . ')';
-                }
-                return [
-                    'id' => $r->id,
-                    'text' => $text,
-                    'batch_no' => $r->batch_no,
-                    'project_name' => $r->project_name,
-                    'customer_name' => $r->customer_name,
-                    'status' => $r->status,
-                ];
-            });
+            $data = $this->service->getEarthDataDatalist($status, $q);
 
             return response()->json($this->apiOutput->successFormat($data, '工程清單取得成功'));
         } catch (\Exception $e) {
@@ -100,32 +63,7 @@ class CommonController extends Controller
     public function getEarthDataDetailStatusList(): JsonResponse
     {
         try {
-            $statusList = [
-                [
-                    'value' => null,
-                    'label' => '全部',
-                ],
-                [
-                    'value' => \App\Models\EarthDataDetail::STATUS_UNPRINTED,
-                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_UNPRINTED],
-                ],
-                [
-                    'value' => \App\Models\EarthDataDetail::STATUS_PRINTED,
-                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_PRINTED],
-                ],
-                [
-                    'value' => \App\Models\EarthDataDetail::STATUS_USED,
-                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_USED],
-                ],
-                [
-                    'value' => \App\Models\EarthDataDetail::STATUS_VOIDED,
-                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_VOIDED],
-                ],
-                [
-                    'value' => \App\Models\EarthDataDetail::STATUS_RECYCLED,
-                    'label' => \App\Models\EarthDataDetail::STATUS_LABELS[\App\Models\EarthDataDetail::STATUS_RECYCLED],
-                ],
-            ];
+            $statusList = $this->service->getEarthDataDetailStatusList();
 
             return response()->json($this->apiOutput->successFormat($statusList, '狀態列表取得成功'));
         } catch (\Exception $e) {

@@ -59,12 +59,25 @@ class AnnouncementController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->service->logFailure([
+                    'remark' => '建立公告驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->api->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
-            $item = $this->service->create($request->only(['title','content','starts_at','ends_at','is_active']));
+            $item = $this->service->create($request->only(['title', 'content', 'starts_at', 'ends_at', 'is_active']));
+
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $item->id ?? 0,
+                'remark' => '建立公告：' . ($item->title ?? '')
+            ]);
+
             return response()->json($this->api->successFormat($item, '公告建立成功'), 201);
         } catch (\Throwable $e) {
+            $this->service->logFailure([
+                'remark' => '建立公告系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->api->failFormat('建立公告失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -100,15 +113,34 @@ class AnnouncementController extends Controller
             ]);
 
             if ($validator->fails()) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新公告驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
                 return response()->json($this->api->failFormat('資料驗證失敗', $validator->errors(), 422));
             }
 
-            $item = $this->service->update($id, $request->only(['title','content','starts_at','ends_at','is_active']));
+            $item = $this->service->update($id, $request->only(['title', 'content', 'starts_at', 'ends_at', 'is_active']));
             if (!$item) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新公告失敗：公告不存在'
+                ]);
                 return response()->json($this->api->failFormat('公告不存在', [], 404));
             }
+
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '更新公告 ID：' . $id
+            ]);
+
             return response()->json($this->api->successFormat($item, '公告更新成功'));
         } catch (\Throwable $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '更新公告系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->api->failFormat('更新公告失敗：' . $e->getMessage(), [], 500));
         }
     }
@@ -121,10 +153,25 @@ class AnnouncementController extends Controller
         try {
             $deleted = $this->service->delete($id);
             if (!$deleted) {
+                $this->service->logFailure([
+                    'data_id' => $id,
+                    'remark' => '刪除公告失敗：公告不存在或刪除失敗'
+                ]);
                 return response()->json($this->api->failFormat('公告不存在或刪除失敗', [], 404));
             }
+
+            // 記錄使用者操作
+            $this->service->logSuccess([
+                'data_id' => $id,
+                'remark' => '刪除公告 ID：' . $id
+            ]);
+
             return response()->json($this->api->successFormat(null, '公告刪除成功'));
         } catch (\Throwable $e) {
+            $this->service->logFailure([
+                'data_id' => $id,
+                'remark' => '刪除公告系統錯誤：' . $e->getMessage()
+            ]);
             return response()->json($this->api->failFormat('刪除公告失敗：' . $e->getMessage(), [], 500));
         }
     }

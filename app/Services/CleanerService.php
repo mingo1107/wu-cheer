@@ -7,12 +7,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class CleanerService
+class CleanerService extends BaseService
 {
     protected $repo;
 
     public function __construct(CleanerRepository $repo)
     {
+        parent::__construct();
         $this->repo = $repo;
     }
 

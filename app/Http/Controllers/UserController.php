@@ -36,7 +36,6 @@ class UserController extends Controller
                 $this->apiOutput->successFormat($data, '取得使用者列表成功'),
                 200
             );
-
         } catch (\Exception $e) {
             Log::error('取得使用者列表系統錯誤', [
                 'error' => $e->getMessage(),
@@ -72,6 +71,7 @@ class UserController extends Controller
                 'email' => 'required|email|max:255|unique:users,email',
                 'password' => 'required|string|min:6|max:255',
                 'password_confirmation' => 'required|same:password',
+                'role' => 'nullable|integer|in:0,1',
             ], [
                 'name.required' => '姓名為必填欄位',
                 'name.max' => '姓名長度不能超過255個字元',
@@ -84,9 +84,16 @@ class UserController extends Controller
                 'password.max' => '密碼長度不能超過255個字元',
                 'password_confirmation.required' => '確認密碼為必填欄位',
                 'password_confirmation.same' => '確認密碼與密碼不一致',
+                'role.integer' => '角色必須為整數',
+                'role.in' => '角色值必須為 0（管理員）或 1（一般使用者）',
             ]);
 
             if ($validator->fails()) {
+                // 記錄驗證失敗
+                $this->userService->logFailure([
+                    'remark' => '建立使用者驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
+
                 return response()->json(
                     $this->apiOutput->failFormat('驗證失敗', $validator->errors(), 422),
                     422
@@ -94,25 +101,35 @@ class UserController extends Controller
             }
 
             // 呼叫 Service 處理建立邏輯
-            $data = $this->userService->createUser($request->only(['name', 'email', 'password']));
+            $data = $this->userService->createUser($request->only(['name', 'email', 'password', 'role']));
 
             // 記錄建立結果
             Log::info('使用者建立成功', [
                 'user_id' => $data['user']['id'],
                 'email' => $data['user']['email']
             ]);
-            
+
+            // 記錄使用者操作
+            $this->userService->logSuccess([
+                'data_id' => $data['user']['id'],
+                'remark' => '建立使用者：' . $data['user']['email']
+            ]);
+
             return response()->json(
                 $this->apiOutput->successFormat($data, '使用者建立成功'),
                 201
             );
-
         } catch (\Exception $e) {
             // 記錄系統錯誤
             Log::error('建立使用者系統錯誤', [
                 'email' => $request->input('email'),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+
+            // 記錄使用者操作失敗
+            $this->userService->logFailure([
+                'remark' => '建立使用者系統錯誤：' . $e->getMessage()
             ]);
 
             return response()->json(
@@ -150,7 +167,6 @@ class UserController extends Controller
                 $this->apiOutput->successFormat($data, '取得使用者資訊成功'),
                 200
             );
-
         } catch (\Exception $e) {
             Log::error('取得使用者資訊系統錯誤', [
                 'user_id' => $id,
@@ -189,6 +205,7 @@ class UserController extends Controller
                 'email' => 'required|email|max:255|unique:users,email,' . $id,
                 'password' => 'nullable|string|min:6|max:255',
                 'password_confirmation' => 'nullable|same:password',
+                'role' => 'nullable|integer|in:0,1',
             ], [
                 'name.required' => '姓名為必填欄位',
                 'name.max' => '姓名長度不能超過255個字元',
@@ -199,9 +216,17 @@ class UserController extends Controller
                 'password.min' => '密碼至少需要6個字元',
                 'password.max' => '密碼長度不能超過255個字元',
                 'password_confirmation.same' => '確認密碼與密碼不一致',
+                'role.integer' => '角色必須為整數',
+                'role.in' => '角色值必須為 0（管理員）或 1（一般使用者）',
             ]);
 
             if ($validator->fails()) {
+                // 記錄驗證失敗
+                $this->userService->logFailure([
+                    'data_id' => $id,
+                    'remark' => '更新使用者驗證失敗：' . json_encode($validator->errors()->all())
+                ]);
+
                 return response()->json(
                     $this->apiOutput->failFormat('驗證失敗', $validator->errors(), 422),
                     422
@@ -209,19 +234,24 @@ class UserController extends Controller
             }
 
             // 呼叫 Service 處理更新邏輯
-            $data = $this->userService->updateUser($id, $request->only(['name', 'email', 'password']));
+            $data = $this->userService->updateUser($id, $request->only(['name', 'email', 'password', 'role']));
 
             // 記錄更新結果
             Log::info('使用者更新成功', [
                 'user_id' => $id,
                 'email' => $data['user']['email']
             ]);
-            
+
+            // 記錄使用者操作
+            $this->userService->logSuccess([
+                'data_id' => $id,
+                'remark' => '更新使用者：' . $data['user']['email']
+            ]);
+
             return response()->json(
                 $this->apiOutput->successFormat($data, '使用者更新成功'),
                 200
             );
-
         } catch (\Exception $e) {
             // 記錄系統錯誤
             Log::error('更新使用者系統錯誤', [
@@ -229,6 +259,12 @@ class UserController extends Controller
                 'email' => $request->input('email'),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+
+            // 記錄使用者操作失敗
+            $this->userService->logFailure([
+                'data_id' => $id,
+                'remark' => '更新使用者系統錯誤：' . $e->getMessage()
             ]);
 
             return response()->json(
@@ -259,18 +295,29 @@ class UserController extends Controller
             Log::info('使用者刪除成功', [
                 'user_id' => $id
             ]);
-            
+
+            // 記錄使用者操作
+            $this->userService->logSuccess([
+                'data_id' => $id,
+                'remark' => '刪除使用者 ID：' . $id
+            ]);
+
             return response()->json(
                 $this->apiOutput->successFormat($data, '使用者刪除成功'),
                 200
             );
-
         } catch (\Exception $e) {
             // 記錄系統錯誤
             Log::error('刪除使用者系統錯誤', [
                 'user_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+
+            // 記錄使用者操作失敗
+            $this->userService->logFailure([
+                'data_id' => $id,
+                'remark' => '刪除使用者系統錯誤：' . $e->getMessage()
             ]);
 
             return response()->json(
