@@ -51,4 +51,28 @@ class AnnouncementRepository extends BaseRepository
     
     // Note: BaseRepository already implements find/create/update/delete with signatures:
     // find($id, $columns=['*']), create($data, array $options=[]), update($id, array $params, array $options=[]), delete($id, $force=false)
+
+    /**
+     * 取得最近活躍公告
+     *
+     * @param int|null $companyId
+     * @param int $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getRecentActiveAnnouncements(?int $companyId = null, int $limit = 5)
+    {
+        $query = $this->model->newQuery()
+            ->select('id', 'title', 'content', 'created_at')
+            ->where('is_active', true)
+            ->where('starts_at', '<=', now())
+            ->where('ends_at', '>=', now());
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        return $query->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }
 }

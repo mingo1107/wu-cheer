@@ -147,4 +147,51 @@ class EarthDataRepository extends BaseRepository
 
         return $query->orderByDesc('e.created_at')->limit(300)->get();
     }
+
+    /**
+     * 取得土單統計（依公司）
+     *
+     * @param int|null $companyId
+     * @return array
+     */
+    public function getStats(?int $companyId = null): array
+    {
+        $query = $this->model->newQuery();
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        $total = (clone $query)->count();
+        $active = (clone $query)->where('status', 'active')->count();
+        $inactive = (clone $query)->where('status', 'inactive')->count();
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'inactive' => $inactive,
+        ];
+    }
+
+    /**
+     * 取得最近建立的土單
+     *
+     * @param int|null $companyId
+     * @param int $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getRecentEarthData(?int $companyId = null, int $limit = 5)
+    {
+        $query = $this->model->newQuery()
+            ->leftJoin('customers as c', 'c.id', '=', 'earth_data.customer_id')
+            ->select('earth_data.id', 'earth_data.batch_no', 'earth_data.project_name', 'c.customer_name', 'earth_data.created_at');
+
+        if ($companyId) {
+            $query->where('earth_data.company_id', $companyId);
+        }
+
+        return $query->orderByDesc('earth_data.created_at')
+            ->limit($limit)
+            ->get();
+    }
 }

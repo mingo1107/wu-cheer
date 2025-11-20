@@ -201,5 +201,22 @@ class CustomerRepository extends BaseRepository
         }
         return $query->orderBy('customer_name')->get(['id', 'customer_name']);
     }
+
+    /**
+     * 取得客戶數量（依公司）
+     *
+     * @param int|null $companyId
+     * @return int
+     */
+    public function getCountByCompany(?int $companyId = null): int
+    {
+        $query = $this->model->newQuery();
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        return $query->count();
+    }
 }
 

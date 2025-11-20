@@ -206,5 +206,23 @@ class VerifierRepository extends BaseRepository
             'inactive' => (clone $query)->inactive()->count(),
         ];
     }
+
+    /**
+     * 取得活躍核銷人員數量（依公司）
+     *
+     * @param int|null $companyId
+     * @return int
+     */
+    public function getActiveCountByCompany(?int $companyId = null): int
+    {
+        $query = $this->model->newQuery()
+            ->where('status', 'active');
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        return $query->count();
+    }
 }
 

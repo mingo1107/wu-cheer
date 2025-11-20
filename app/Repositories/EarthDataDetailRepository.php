@@ -348,4 +348,123 @@ class EarthDataDetailRepository extends BaseRepository
                 'status' => \App\Models\EarthDataDetail::STATUS_PRINTED,
             ]);
     }
+
+    /**
+     * 取得土單明細統計（依公司）
+     *
+     * @param int|null $companyId
+     * @return array
+     */
+    public function getStatsByCompany(?int $companyId = null): array
+    {
+        $query = $this->model->newQuery()
+            ->from($this->model->getTable() . ' as d')
+            ->join('earth_data as e', 'e.id', '=', 'd.earth_data_id');
+
+        if ($companyId) {
+            $query->where('e.company_id', $companyId);
+        }
+
+        $total = (clone $query)->count();
+        $unprinted = (clone $query)->where('d.status', \App\Models\EarthDataDetail::STATUS_UNPRINTED)->count();
+        $printed = (clone $query)->where('d.status', \App\Models\EarthDataDetail::STATUS_PRINTED)->count();
+        $used = (clone $query)->where('d.status', \App\Models\EarthDataDetail::STATUS_USED)->count();
+        $voided = (clone $query)->where('d.status', \App\Models\EarthDataDetail::STATUS_VOIDED)->count();
+        $recycled = (clone $query)->where('d.status', \App\Models\EarthDataDetail::STATUS_RECYCLED)->count();
+
+        // 今日核銷數量
+        $todayUsed = (clone $query)
+            ->where('d.status', \App\Models\EarthDataDetail::STATUS_USED)
+            ->whereDate('d.verified_at', today())
+            ->count();
+
+        return [
+            'total' => $total,
+            'unprinted' => $unprinted,
+            'printed' => $printed,
+            'used' => $used,
+            'voided' => $voided,
+            'recycled' => $recycled,
+            'today_used' => $todayUsed,
+        ];
+    }
+
+    /**
+     * 取得最近核銷記錄
+     *
+     * @param int|null $companyId
+     * @param int $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getRecentVerifies(?int $companyId = null, int $limit = 5)
+    {
+        $query = $this->model->newQuery()
+            ->from($this->model->getTable() . ' as d')
+            ->join('earth_data as e', 'e.id', '=', 'd.earth_data_id')
+            ->leftJoin('verifiers as v', 'v.id', '=', 'd.verified_by')
+            ->select('d.id', 'd.barcode', 'e.project_name', 'v.name as verifier_name', 'd.verified_at')
+            ->where('d.status', \App\Models\EarthDataDetail::STATUS_USED)
+            ->whereNotNull('d.verified_at');
+
+        if ($companyId) {
+            $query->where('e.company_id', $companyId);
+        }
+
+        return $query->orderByDesc('d.verified_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * 取得本月核銷趨勢
+     *
+     * @param int|null $companyId
+     * @param \Carbon\Carbon $startOfMonth
+     * @param \Carbon\Carbon $endOfMonth
+     * @return array
+     */
+    public function getMonthlyVerifyTrend(?int $companyId = null, $startOfMonth = null, $endOfMonth = null): array
+    {
+        if (!$startOfMonth) {
+            $startOfMonth = now()->startOfMonth();
+        }
+        if (!$endOfMonth) {
+            $endOfMonth = now()->endOfMonth();
+        }
+
+        $query = $this->model->newQuery()
+            ->from($this->model->getTable() . ' as d')
+            ->join('earth_data as e', 'e.id', '=', 'd.earth_data_id')
+            ->select(
+                DB::raw('DATE(d.verified_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->where('d.status', \App\Models\EarthDataDetail::STATUS_USED)
+            ->whereNotNull('d.verified_at')
+            ->whereBetween('d.verified_at', [$startOfMonth, $endOfMonth]);
+
+        if ($companyId) {
+            $query->where('e.company_id', $companyId);
+        }
+
+        $results = $query->groupBy(DB::raw('DATE(d.verified_at)'))
+            ->orderBy('date')
+            ->get();
+
+        // 生成完整的月份日期列表
+        $trend = [];
+        $currentDate = $startOfMonth->copy();
+
+        while ($currentDate <= $endOfMonth) {
+            $dateStr = $currentDate->format('Y-m-d');
+            $result = $results->firstWhere('date', $dateStr);
+            $trend[] = [
+                'date' => $dateStr,
+                'count' => $result ? (int)$result->count : 0,
+            ];
+            $currentDate->addDay();
+        }
+
+        return $trend;
+    }
 }

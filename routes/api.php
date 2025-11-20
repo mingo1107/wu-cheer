@@ -5,6 +5,7 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CommonController;
 use App\Http\Controllers\CleanerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EarthDataController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserLogController;
@@ -60,6 +61,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('account/me', [AccountController::class, 'me'])->name('api.account.me');
     // 修改密碼
     Route::post('account/change-password', [AccountController::class, 'changePassword'])->name('api.account.change-password');
+
+    //@ dashboard
+    // 儀表板統計資料
+    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('api.dashboard.stats');
 
     //@ user
     // 使用者管理 CRUD (需要管理員權限)
