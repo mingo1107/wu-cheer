@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Models\EarthData;
@@ -89,7 +90,25 @@ class EarthDataRepository extends BaseRepository
 
         $uniqueBy = ['id'];
         $update   = [
-            'company_id', 'batch_no', 'issue_date', 'issue_count', 'customer_id', 'valid_date_from', 'valid_date_to', 'cleaner_id', 'project_name', 'flow_control_no', 'carry_qty', 'carry_soil_type', 'status_desc', 'remark_desc', 'created_by', 'updated_by', 'sys_serial_no', 'status', 'updated_at',
+            'company_id',
+            'batch_no',
+            'issue_date',
+            'issue_count',
+            'customer_id',
+            'valid_date_from',
+            'valid_date_to',
+            'cleaner_id',
+            'project_name',
+            'flow_control_no',
+            'carry_qty',
+            'carry_soil_type',
+            'status_desc',
+            'remark_desc',
+            'created_by',
+            'updated_by',
+            'sys_serial_no',
+            'status',
+            'updated_at',
         ];
         return $this->model->upsert($rows, $uniqueBy, $update);
     }
@@ -121,31 +140,31 @@ class EarthDataRepository extends BaseRepository
     public function getDatalist(string $status = 'all', string $q = ''): \Illuminate\Database\Eloquent\Collection
     {
         $query = $this->model->newQuery()
-            ->from('earth_data as e')
-            ->leftJoin('customers as c', 'c.id', '=', 'e.customer_id')
-            ->select('e.id', 'e.batch_no', 'e.project_name', 'e.status', \DB::raw('c.customer_name as customer_name'));
+            ->from('earth_data')
+            ->leftJoin('customers as c', 'c.id', '=', 'earth_data.customer_id')
+            ->select('earth_data.id', 'earth_data.batch_no', 'earth_data.project_name', 'earth_data.status', \DB::raw('c.customer_name as customer_name'));
 
         // 公司範圍
         if (Auth::guard('api')->check() && isset(Auth::guard('api')->user()->company_id)) {
-            $query->where('e.company_id', Auth::guard('api')->user()->company_id);
+            $query->where('earth_data.company_id', Auth::guard('api')->user()->company_id);
         }
 
         // 狀態篩選
         if (in_array($status, ['active', 'inactive'], true)) {
-            $query->where('e.status', $status);
+            $query->where('earth_data.status', $status);
         }
 
         // 關鍵字搜尋
         $q = trim($q);
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
-                $sub->where('e.batch_no', 'like', "%{$q}%")
-                    ->orWhere('e.project_name', 'like', "%{$q}%")
+                $sub->where('earth_data.batch_no', 'like', "%{$q}%")
+                    ->orWhere('earth_data.project_name', 'like', "%{$q}%")
                     ->orWhere('c.customer_name', 'like', "%{$q}%");
             });
         }
 
-        return $query->orderByDesc('e.created_at')->limit(300)->get();
+        return $query->orderByDesc('earth_data.created_at')->limit(300)->get();
     }
 
     /**
