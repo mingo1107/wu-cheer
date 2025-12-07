@@ -132,7 +132,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('common/customers', [CommonController::class, 'getCustomerList'])->name('api.common.customers');
     Route::get('common/earth-data/datalist', [CommonController::class, 'getEarthDataDatalist'])->name('api.common.earth-data.datalist');
     Route::get('common/earth-data-detail/status-list', [CommonController::class, 'getEarthDataDetailStatusList'])->name('api.common.earth-data-detail.status-list');
-    Route::get('/soil-types', [CommonController::class, 'soilTypes'])->name('api.common.soil-types');
 
     // 通用 API
     Route::prefix('common')->name('api.common.')->group(function () {
