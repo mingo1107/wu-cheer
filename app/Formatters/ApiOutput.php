@@ -28,21 +28,26 @@ class ApiOutput
     }
 
     /**
-     * @param array $data
      * @param string $message
+     * @param array $data
      * @param integer $code
      * @return array
      */
-    public function successFormat($data = [], $message = '')
+    public function successFormat($data = null, string $message = '操作成功', int $code = 200): array
     {
         $this->status = true;
 
         if ($message !== '') {
-            //$this->code = $code;
+            $this->code = $code;
             $this->message = $message;
         }
 
-        return $this->formatting(['data' => $data]);
+        return [
+            'status' => true,
+            'message' => $message,
+            'code' => $code,
+            'data' => $data
+        ];
     }
 
     /**
@@ -83,7 +88,7 @@ class ApiOutput
         }
         return [
             'status' =>  false,
-            'message' => $message, //$e->getMessage(),
+            'message' => $message,
             'error' => $error ?? ''
         ];
     }

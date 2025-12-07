@@ -152,6 +152,64 @@
               </table>
             </div>
           </div>
+
+          <!-- 分頁區塊 -->
+          <div v-if="pagination && pagination.last_page > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+              <button
+                @click="goToPage(pagination.current_page - 1)"
+                :disabled="pagination.current_page <= 1"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                上一頁
+              </button>
+              <button
+                @click="goToPage(pagination.current_page + 1)"
+                :disabled="pagination.current_page >= pagination.last_page"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                下一頁
+              </button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700">
+                  顯示第 <span class="font-medium">{{ pagination.from || 0 }}</span> 到
+                  <span class="font-medium">{{ pagination.to || 0 }}</span> 筆，共
+                  <span class="font-medium">{{ pagination.total }}</span> 筆資料
+                </p>
+              </div>
+              <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    @click="goToPage(pagination.current_page - 1)"
+                    :disabled="pagination.current_page <= 1"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <template v-for="page in visiblePages" :key="page">
+                    <button
+                      v-if="page !== '...'"
+                      @click="goToPage(page)"
+                      :class="page === pagination.current_page ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
+                      class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                    >
+                      {{ page }}
+                    </button>
+                    <span v-else class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                  </template>
+                  <button
+                    @click="goToPage(pagination.current_page + 1)"
+                    :disabled="pagination.current_page >= pagination.last_page"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -325,6 +383,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import userAPI from '../api/user.js';
 import { useToast } from '../composables/useToast.js';
+import { usePagination } from '@/composables/usePagination'
 
 const router = useRouter();
 const { success, error: showError } = useToast();
@@ -339,6 +398,7 @@ const showModal = ref(false);
 const showDeleteModal = ref(false);
 const isEditing = ref(false);
 const userToDelete = ref(null);
+const pagination = ref(null);
 
 // 確保 dataList 是陣列
 if (!Array.isArray(dataList.value)) {
@@ -368,32 +428,56 @@ const debouncedSearch = () => {
   }, 500);
 };
 
-// 方法
-const loadUsers = async () => {
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, loadUsers)
+
+// 修改 loadUsers 以支援分頁
+const loadUsers = async (page = 1) => {
   isLoading.value = true;
   error.value = null;
-  
+
   try {
-    const response = await userAPI.getUsers({ search: searchQuery.value });
-    
-      if (response.status) {
-        // 處理分頁資料結構
-        if (response.data.users && response.data.users.data) {
-          dataList.value = response.data.users.data;
-        } else if (Array.isArray(response.data.data)) {
-          dataList.value = response.data.data;
-          console.log('使用者列表:', dataList.value);
-        } else {
-          dataList.value = [];
-        }
-        console.log('使用者列表:', dataList.value);
+    const response = await userAPI.getUsers({
+      search: searchQuery.value,
+      page,
+      per_page: 15
+    });
+
+    if (response.status) {
+      if (response.data.users && response.data.users.data) {
+        dataList.value = response.data.users.data;
+        // 設定分頁資訊
+        pagination.value = {
+          current_page: response.data.users.current_page,
+          last_page: response.data.users.last_page,
+          per_page: response.data.users.per_page,
+          total: response.data.users.total,
+          from: response.data.users.from,
+          to: response.data.users.to
+        };
+      } else if (Array.isArray(response.data.data)) {
+        dataList.value = response.data.data;
+        // 設定分頁資訊
+        pagination.value = {
+          current_page: response.data.current_page || 1,
+          last_page: response.data.last_page || 1,
+          per_page: response.data.per_page || 15,
+          total: response.data.total || 0,
+          from: response.data.from || 0,
+          to: response.data.to || 0
+        };
       } else {
-        error.value = response.message || '載入使用者列表失敗';
+        dataList.value = [];
+        pagination.value = null;
       }
-    } catch (e) {
-      console.error('載入使用者列表錯誤:', e);
-      error.value = e.message || '載入使用者列表失敗';
-      dataList.value = []; // 確保 dataList 是陣列
+    } else {
+      error.value = response.message || '載入使用者列表失敗';
+    }
+  } catch (e) {
+    console.error('載入使用者列表錯誤:', e);
+    error.value = e.message || '載入使用者列表失敗';
+    dataList.value = [];
+    pagination.value = null;
   } finally {
     isLoading.value = false;
   }
@@ -411,7 +495,7 @@ const openEditModal = (user) => {
     error.value = '無效的使用者資料';
     return;
   }
-  
+
   isEditing.value = true;
   form.value = {
     id: user.id,
@@ -433,7 +517,7 @@ const closeModal = () => {
 const submitForm = async () => {
   isSubmitting.value = true;
   error.value = null;
-  
+
   try {
     let response;
     if (isEditing.value) {
@@ -445,7 +529,7 @@ const submitForm = async () => {
     } else {
       response = await userAPI.createUser(form.value);
     }
-    
+
     if (response.status) {
       showModal.value = false;
       await loadUsers();
@@ -472,7 +556,7 @@ const confirmDelete = (user) => {
     error.value = '無效的使用者資料';
     return;
   }
-  
+
   userToDelete.value = user;
   showDeleteModal.value = true;
 };
@@ -482,10 +566,10 @@ const deleteUser = async () => {
     error.value = '無效的使用者資料';
     return;
   }
-  
+
   isSubmitting.value = true;
   error.value = null;
-  
+
   try {
     const response = await userAPI.deleteUser(userToDelete.value.id);
     if (response.status) {

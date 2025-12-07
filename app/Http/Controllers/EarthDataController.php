@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Formatters\ApiOutput;
 use App\Models\EarthData;
 use App\Services\EarthDataService;
-// repositories should be consumed via services per project conventions
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class EarthDataController extends Controller
 {
@@ -30,13 +30,19 @@ class EarthDataController extends Controller
                 'sort_by'         => $request->get('sort_by', 'created_at'),
                 'sort_order'      => $request->get('sort_order', 'desc'),
             ];
-
             $perPage = (int) $request->get('per_page', 15);
-            $list    = $this->service->getEarthDataList($filters, $perPage);
 
-            return response()->json($this->apiOutput->successFormat($list, '土單資料列表取得成功'));
+            $data = $this->service->getEarthDataList($filters, $perPage);
+
+            return response()->json(
+                $this->apiOutput->successFormat($data, '土單資料列表取得成功')
+            );
         } catch (\Exception $e) {
-            return response()->json($this->apiOutput->failFormat('取得土單資料列表失敗：' . $e->getMessage(), [], 500));
+            Log::error('取得土單資料列表失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat('取得土單資料列表失敗', [], 500),
+                500
+            );
         }
     }
 
@@ -46,55 +52,18 @@ class EarthDataController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'batch_no'        => 'required|string|max:255',
-                'cleaner_ids'     => 'nullable|array',
-                'cleaner_ids.*'   => 'integer|exists:cleaners,id',
-                'project_name'    => 'nullable|string|max:255',
-                'issue_date'      => 'nullable|date',
-                'issue_count'     => 'nullable|integer|min:0',
-                'customer_id'     => 'nullable|integer|exists:customers,id',
-                'valid_date_from' => 'nullable|date',
-                'valid_date_to'   => 'nullable|date|after_or_equal:valid_date_from',
-                'flow_control_no' => 'nullable|string|max:255',
-                'carry_qty'       => 'nullable|numeric|min:0',
-                'carry_soil_type' => 'nullable|string|max:255',
-                'status_desc'     => 'nullable|string|max:500',
-                'remark_desc'     => 'nullable|string|max:1000',
-                //'sys_serial_no'   => 'nullable|string|max:255',
-                'status'          => 'nullable|in:active,inactive',
-            ], [
-                'batch_no.required' => '批號為必填欄位',
-            ]);
+            $earthData = $this->service->createEarthData($request->all());
 
-            if ($validator->fails()) {
-                $this->service->logFailure([
-                    'remark' => '建立土單資料驗證失敗：' . json_encode($validator->errors()->all())
-                ]);
-                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
-            }
-
-            $data   = $request->all();
-            $userId = auth('api')->check() ? auth('api')->id() : null;
-            if ($userId) {
-                $data['created_by'] = $userId;
-                $data['updated_by'] = $userId;
-            }
-
-            $item = $this->service->createEarthData($data);
-
-            // 記錄使用者操作
-            $this->service->logSuccess([
-                'data_id' => $item->id ?? 0,
-                'remark' => '建立土單資料：' . ($item->batch_no ?? '') . ' - ' . ($item->project_name ?? '')
-            ]);
-
-            return response()->json($this->apiOutput->successFormat($item, '土單資料建立成功'), 201);
+            return response()->json(
+                $this->apiOutput->successFormat($earthData, '土單資料建立成功'),
+                201
+            );
         } catch (\Exception $e) {
-            $this->service->logFailure([
-                'remark' => '建立土單資料系統錯誤：' . $e->getMessage()
-            ]);
-            return response()->json($this->apiOutput->failFormat('建立土單資料失敗：' . $e->getMessage(), [], 500));
+            Log::error('建立土單資料失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat('建立土單資料失敗', [], 500),
+                500
+            );
         }
     }
 
@@ -104,22 +73,17 @@ class EarthDataController extends Controller
     public function show(int $id): JsonResponse
     {
         try {
-            if ($id === 0) {
-                $schema = [];
-                foreach (EarthData::FILLABLE as $field) {
-                    $schema[$field] = EarthData::ATTRIBUTES[$field] ?? null;
-                }
-                return response()->json($this->apiOutput->successFormat($schema, '土單欄位預設值'));
-            }
+            $earthData = $this->service->getEarthData($id);
 
-            $item = $this->service->getEarthData($id);
-            if (! $item) {
-                return response()->json($this->apiOutput->failFormat('土單資料不存在', [], 404));
-            }
-
-            return response()->json($this->apiOutput->successFormat($item, '土單資料取得成功'));
+            return response()->json(
+                $this->apiOutput->successFormat($earthData, '土單資料取得成功')
+            );
         } catch (\Exception $e) {
-            return response()->json($this->apiOutput->failFormat('取得土單資料失敗：' . $e->getMessage(), [], 500));
+            Log::error('取得土單資料失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat($e->getMessage(), [], 404),
+                404
+            );
         }
     }
 
@@ -129,58 +93,17 @@ class EarthDataController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'batch_no'        => 'sometimes|required|string|max:255',
-                'cleaner_ids'     => 'nullable|array',
-                'cleaner_ids.*'   => 'integer|exists:cleaners,id',
-                'project_name'    => 'nullable|string|max:255',
-                'flow_control_no' => 'nullable|string|max:255',
-                'issue_date'      => 'nullable|date',
-                'issue_count'     => 'nullable|integer|min:0',
-                'customer_id'     => 'nullable|integer|exists:customers,id',
-                'valid_date_from' => 'nullable|date',
-                'valid_date_to'   => 'nullable|date|after_or_equal:valid_date_from',
-                'carry_qty'       => 'nullable|numeric|min:0',
-                'carry_soil_type' => 'nullable|string|max:255',
-                'status_desc'     => 'nullable|string|max:500',
-                'remark_desc'     => 'nullable|string|max:1000',
-                'sys_serial_no'   => 'nullable|string|max:255',
-                'status'          => 'nullable|in:active,inactive',
-                'created_by'      => 'nullable|integer',
-                'updated_by'      => 'nullable|integer',
-            ], [
-                'batch_no.required' => '批號為必填欄位',
-            ]);
+            $earthData = $this->service->updateEarthData($id, $request->all());
 
-            if ($validator->fails()) {
-                $this->service->logFailure([
-                    'data_id' => $id,
-                    'remark' => '更新土單資料驗證失敗：' . json_encode($validator->errors()->all())
-                ]);
-                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
-            }
-
-            $data   = $request->all();
-            $userId = auth('api')->check() ? auth('api')->id() : null;
-            if ($userId) {
-                $data['updated_by'] = $userId;
-            }
-
-            $item = $this->service->updateEarthData($id, $data);
-
-            // 記錄使用者操作
-            $this->service->logSuccess([
-                'data_id' => $id,
-                'remark' => '更新土單資料 ID：' . $id
-            ]);
-
-            return response()->json($this->apiOutput->successFormat($item, '土單資料更新成功'));
+            return response()->json(
+                $this->apiOutput->successFormat($earthData, '土單資料更新成功')
+            );
         } catch (\Exception $e) {
-            $this->service->logFailure([
-                'data_id' => $id,
-                'remark' => '更新土單資料系統錯誤：' . $e->getMessage()
-            ]);
-            return response()->json($this->apiOutput->failFormat('更新土單資料失敗：' . $e->getMessage(), [], 500));
+            Log::error('更新土單資料失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat($e->getMessage(), [], 500),
+                500
+            );
         }
     }
 
@@ -190,29 +113,17 @@ class EarthDataController extends Controller
     public function destroy(int $id): JsonResponse
     {
         try {
-            $deleted = $this->service->deleteEarthData($id);
+            $this->service->deleteEarthData($id);
 
-            if (! $deleted) {
-                $this->service->logFailure([
-                    'data_id' => $id,
-                    'remark' => '刪除土單資料失敗：土單資料不存在或刪除失敗'
-                ]);
-                return response()->json($this->apiOutput->failFormat('土單資料不存在或刪除失敗', [], 404));
-            }
-
-            // 記錄使用者操作
-            $this->service->logSuccess([
-                'data_id' => $id,
-                'remark' => '刪除土單資料 ID：' . $id
-            ]);
-
-            return response()->json($this->apiOutput->successFormat(null, '土單資料刪除成功'));
+            return response()->json(
+                $this->apiOutput->successFormat(null, '土單資料刪除成功')
+            );
         } catch (\Exception $e) {
-            $this->service->logFailure([
-                'data_id' => $id,
-                'remark' => '刪除土單資料系統錯誤：' . $e->getMessage()
-            ]);
-            return response()->json($this->apiOutput->failFormat('刪除土單資料失敗：' . $e->getMessage(), [], 500));
+            Log::error('刪除土單資料失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat($e->getMessage(), [], 500),
+                500
+            );
         }
     }
 
@@ -314,28 +225,53 @@ class EarthDataController extends Controller
     public function adjustDetails(Request $request, int $id): JsonResponse
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'action'        => 'required|in:add,remove',
-                'count'         => 'required|integer|min:1',
-                'use_start_date' => 'nullable|date',
-                'use_end_date'   => 'nullable|date|after_or_equal:use_start_date',
-            ]);
+            // 從設定檔取得米數類型
+            $meterTypes = config('meter_types.types', []);
+            $validationRules = [
+                'action'           => 'required|in:add,remove',
+                'count'            => 'nullable|integer|min:1',
+                'meters'           => 'nullable|array',
+                'use_start_date'   => 'nullable|date',
+                'use_end_date'     => 'nullable|date|after_or_equal:use_start_date',
+            ];
+
+            // 動態生成米數欄位的驗證規則
+            foreach ($meterTypes as $meterType) {
+                $field = $meterType['field'];
+                $validationRules["meters.{$field}"] = 'nullable|integer|min:0';
+            }
+
+            $validator = Validator::make($request->all(), $validationRules);
 
             if ($validator->fails()) {
-                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422));
+                return response()->json($this->apiOutput->failFormat('資料驗證失敗', $validator->errors(), 422), 422);
             }
 
             $action        = $request->get('action');
-            $count         = (int) $request->get('count');
+            $count         = (int) $request->get('count', 0);
             $useStartDate  = $request->get('use_start_date');
             $useEndDate    = $request->get('use_end_date');
-            $result        = $this->service->adjustDetails($id, $action, $count, $useStartDate, $useEndDate);
+
+            // 處理米數參數（動態讀取設定檔）
+            $meters = $request->get('meters', []);
+            $meterQuantities = [];
+            if (!empty($meters)) {
+                foreach ($meterTypes as $meterType) {
+                    $field = $meterType['field'];
+                    $value = $meterType['value'];
+                    if (isset($meters[$field]) && $meters[$field] > 0) {
+                        $meterQuantities[$value] = (int) $meters[$field];
+                    }
+                }
+            }
+
+            $result = $this->service->adjustDetails($id, $action, $count, $useStartDate, $useEndDate, $meterQuantities);
 
             return response()->json($this->apiOutput->successFormat(array_merge($result, [
                 'earth_data_id' => $id,
             ]), '土單張數調整完成'));
         } catch (\Exception $e) {
-            return response()->json($this->apiOutput->failFormat('調整土單張數失敗：' . $e->getMessage(), [], 500));
+            return response()->json($this->apiOutput->failFormat('調整土單張數失敗：' . $e->getMessage(), [], 500), 500);
         }
     }
 
@@ -411,5 +347,85 @@ class EarthDataController extends Controller
             'earth'   => $earth,
             'details' => $details,
         ]);
+    }
+
+    /**
+     * 結案工程
+     */
+    public function close(Request $request, int $id): JsonResponse
+    {
+        try {
+            // 驗證請求
+            $validator = Validator::make($request->all(), [
+                'certificate' => 'required|image|max:5120', // 5MB
+                'closure_remark' => 'nullable|string|max:1000',
+            ], [
+                'certificate.required' => '請上傳結案照片',
+                'certificate.image' => '結案照片必須是圖片檔案',
+                'certificate.max' => '圖片大小不可超過 5MB',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(
+                    $this->apiOutput->failFormat('驗證失敗', $validator->errors()->toArray(), 422),
+                    422
+                );
+            }
+
+            $earthData = $this->service->closeProject($id, [
+                'certificate' => $request->file('certificate'),
+                'closure_remark' => $request->input('closure_remark', ''),
+            ]);
+
+            return response()->json(
+                $this->apiOutput->successFormat($earthData, '工程結案成功，結案證明已產生')
+            );
+        } catch (\Exception $e) {
+            Log::error('工程結案失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat($e->getMessage(), [], 500),
+                500
+            );
+        }
+    }
+
+    /**
+     * 查看結案證明（開啟 HTML 版本用於列印）
+     */
+    public function viewClosureCertificate(int $id)
+    {
+        try {
+            $earthData = $this->service->getEarthData($id);
+            if (!$earthData) {
+                abort(404, '土單資料不存在');
+            }
+
+            if ($earthData->closure_status !== 'closed') {
+                abort(400, '此工程尚未結案');
+            }
+
+            // 權限：限定同公司
+            $this->assertSameCompany($earthData->company_id);
+
+            // 載入客戶名稱
+            $customer = \App\Models\Customer::find($earthData->customer_id);
+            $earthData->customer_name = $customer?->customer_name ?? '';
+
+            // 取得結案日期（民國年）
+            $closedAt = $earthData->closed_at;
+            $rocYear = $closedAt->year - 1911;
+            $month = $closedAt->format('m');
+            $day = $closedAt->format('d');
+
+            return view('print.closure_certificate', [
+                'earth' => $earthData,
+                'closedYear' => $rocYear,
+                'closedMonth' => ltrim($month, '0'),
+                'closedDay' => ltrim($day, '0'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('查看結案證明失敗', ['error' => $e->getMessage()]);
+            abort(500, '查看結案證明失敗');
+        }
     }
 }

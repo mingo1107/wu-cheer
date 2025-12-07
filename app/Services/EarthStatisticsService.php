@@ -18,10 +18,10 @@ class EarthStatisticsService extends BaseService
         return $this->earthRepo->find($id);
     }
 
-    public function getUsageStats(int $earthDataId): array
+    public function getUsageStats(int $earthDataId, ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $totals = $this->detailRepo->getTotals($earthDataId);
-        $daily  = $this->detailRepo->getDailyVerifiedCounts($earthDataId);
+        $totals = $this->detailRepo->getTotals($earthDataId, $dateFrom, $dateTo);
+        $daily  = $this->detailRepo->getDailyVerifiedCounts($earthDataId, $dateFrom, $dateTo);
         return [
             'totals' => $totals,
             'daily'  => $daily,

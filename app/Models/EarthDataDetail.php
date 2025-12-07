@@ -21,6 +21,7 @@ class EarthDataDetail extends Model
         'verified_by',
         'vehicle_id',
         'driver_name',
+        'meter_type',
         'created_at',
         'updated_at',
     ];
@@ -31,6 +32,7 @@ class EarthDataDetail extends Model
         'verified_at'   => 'datetime',
         'verified_by'   => 'integer',
         'vehicle_id'    => 'integer',
+        'meter_type'    => 'integer',
         'print_at'      => 'datetime',
     ];
 

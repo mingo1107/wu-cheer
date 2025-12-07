@@ -138,14 +138,14 @@
           <div v-if="pagination && pagination.total > 0" class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div class="flex-1 flex justify-between sm:hidden">
               <button
-                @click="changePage(pagination.current_page - 1)"
+                @click="goToPage(pagination.current_page - 1)"
                 :disabled="pagination.current_page === 1"
                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 上一頁
               </button>
               <button
-                @click="changePage(pagination.current_page + 1)"
+                @click="goToPage(pagination.current_page + 1)"
                 :disabled="pagination.current_page === pagination.last_page"
                 class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -163,22 +163,28 @@
               <div>
                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                   <button
-                    @click="changePage(pagination.current_page - 1)"
+                    @click="goToPage(pagination.current_page - 1)"
                     :disabled="pagination.current_page === 1"
                     class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span class="sr-only">上一頁</span>
                     <i class="fas fa-chevron-left"></i>
                   </button>
-                  <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                    第 {{ pagination.current_page }} / {{ pagination.last_page }} 頁
-                  </span>
+                  <template v-for="page in visiblePages" :key="page">
+                    <button
+                      v-if="page !== '...'"
+                      @click="goToPage(page)"
+                      :class="page === pagination.current_page ? 'z-10 bg-amber-50 border-amber-500 text-amber-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
+                      class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                    >
+                      {{ page }}
+                    </button>
+                    <span v-else class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                  </template>
                   <button
-                    @click="changePage(pagination.current_page + 1)"
+                    @click="goToPage(pagination.current_page + 1)"
                     :disabled="pagination.current_page === pagination.last_page"
                     class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span class="sr-only">下一頁</span>
                     <i class="fas fa-chevron-right"></i>
                   </button>
                 </nav>
@@ -195,6 +201,7 @@
 import { ref, onMounted } from 'vue';
 import { useToast } from '../composables/useToast.js';
 import userLogAPI from '../api/userLog.js';
+import { usePagination } from '@/composables/usePagination'
 
 const { success, error: showError } = useToast();
 
@@ -226,7 +233,7 @@ const loadLogs = async (page = 1) => {
     });
 
     const resp = await userLogAPI.getLogs(params);
-    
+
     if (resp.status) {
       dataList.value = Array.isArray(resp.data?.data) ? resp.data.data : [];
       pagination.value = {
@@ -261,12 +268,8 @@ const resetFilters = () => {
   loadLogs(1);
 };
 
-// 切換頁面
-const changePage = (page) => {
-  if (page >= 1 && page <= pagination.value.last_page) {
-    loadLogs(page);
-  }
-};
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, loadLogs)
 
 // 格式化日期時間
 const formatDateTime = (dateString) => {
@@ -286,4 +289,3 @@ onMounted(() => {
   loadLogs();
 });
 </script>
-

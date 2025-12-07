@@ -24,20 +24,41 @@ class EarthDataDetailRepository extends BaseRepository
         return $barcode;
     }
 
-    public function addDetails(int $earthDataId, string $flowControlNo, int $count, ?string $useStartDate = null, ?string $useEndDate = null): int
+    public function addDetails(int $earthDataId, string $flowControlNo, int $count, ?string $useStartDate = null, ?string $useEndDate = null, array $meterQuantities = []): int
     {
         $rows = [];
         $now  = now();
-        for ($i = 0; $i < $count; $i++) {
-            $rows[] = [
-                'earth_data_id' => $earthDataId,
-                'barcode'       => $this->generateBarcode($flowControlNo),
-                'use_start_date' => $useStartDate,
-                'use_end_date'   => $useEndDate,
-                'created_at'    => $now,
-                'updated_at'    => $now,
-            ];
+
+        // 如果提供米數數量，按比例分配建立明細
+        if (!empty($meterQuantities)) {
+            foreach ($meterQuantities as $meterType => $qty) {
+                $qty = (int) $qty;
+                for ($i = 0; $i < $qty; $i++) {
+                    $rows[] = [
+                        'earth_data_id'  => $earthDataId,
+                        'barcode'        => $this->generateBarcode($flowControlNo),
+                        'use_start_date' => $useStartDate,
+                        'use_end_date'   => $useEndDate,
+                        'meter_type'     => (int) $meterType,
+                        'created_at'     => $now,
+                        'updated_at'     => $now,
+                    ];
+                }
+            }
+        } else {
+            // 如果沒有米數資訊，建立指定數量的明細
+            for ($i = 0; $i < $count; $i++) {
+                $rows[] = [
+                    'earth_data_id'  => $earthDataId,
+                    'barcode'        => $this->generateBarcode($flowControlNo),
+                    'use_start_date' => $useStartDate,
+                    'use_end_date'   => $useEndDate,
+                    'created_at'     => $now,
+                    'updated_at'     => $now,
+                ];
+            }
         }
+
         return $this->model->insert($rows) ? count($rows) : 0;
     }
 
@@ -219,9 +240,18 @@ class EarthDataDetailRepository extends BaseRepository
     /**
      * 取得總數量、已印數量、未印數量
      */
-    public function getTotals(int $earthDataId): array
+    public function getTotals(int $earthDataId, ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $base     = $this->model->newQuery()->where('earth_data_id', $earthDataId);
+        $base = $this->model->newQuery()->where('earth_data_id', $earthDataId);
+
+        // 日期篩選：根據 print_at 欄位
+        if ($dateFrom) {
+            $base->where('print_at', '>=', $dateFrom . ' 00:00:00');
+        }
+        if ($dateTo) {
+            $base->where('print_at', '<=', $dateTo . ' 23:59:59');
+        }
+
         $total    = (clone $base)->count();
         $printed  = (clone $base)->whereNotNull('print_at')->count();
         $pending  = max(0, $total - $printed);
@@ -285,14 +315,23 @@ class EarthDataDetailRepository extends BaseRepository
     /**
      * 依日期統計每日核銷數
      */
-    public function getDailyVerifiedCounts(int $earthDataId): array
+    public function getDailyVerifiedCounts(int $earthDataId, ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $rows = $this->model->newQuery()
-            ->select(DB::raw('DATE(verified_at) as day'), DB::raw('COUNT(*) as cnt'))
+        $query = $this->model->newQuery()
+            ->select(DB::raw('DATE(print_at) as day'), DB::raw('COUNT(*) as cnt'))
             ->where('earth_data_id', $earthDataId)
-            ->whereNotNull('verified_at')
-            ->groupBy(DB::raw('DATE(verified_at)'))
-            ->orderBy(DB::raw('DATE(verified_at)'))
+            ->whereNotNull('print_at');
+
+        // 日期篩選
+        if ($dateFrom) {
+            $query->where('print_at', '>=', $dateFrom . ' 00:00:00');
+        }
+        if ($dateTo) {
+            $query->where('print_at', '<=', $dateTo . ' 23:59:59');
+        }
+
+        $rows = $query->groupBy(DB::raw('DATE(print_at)'))
+            ->orderBy(DB::raw('DATE(print_at)'))
             ->get();
 
         return $rows->map(fn($r) => [

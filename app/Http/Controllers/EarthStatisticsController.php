@@ -30,7 +30,11 @@ class EarthStatisticsController extends Controller
                 }
             }
 
-            $stats = $this->service->getUsageStats($earthData->id);
+            // 取得日期篩選參數
+            $dateFrom = $request->get('date_from');
+            $dateTo = $request->get('date_to');
+
+            $stats = $this->service->getUsageStats($earthData->id, $dateFrom, $dateTo);
 
             return response()->json($this->apiOutput->successFormat([
                 'earth_data_id' => $earthData->id,

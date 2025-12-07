@@ -66,13 +66,12 @@
                   <th class="th-base min-w-[160px]">工程名稱</th>
                   <th class="th-base min-w-[140px]">管制編號</th>
                   <th class="th-base min-w-[120px]">開立日期</th>
+                  <th class="th-base min-w-[100px]">工程起迄</th>
                   <th class="th-base min-w-[110px]">開立張數</th>
                   <th class="th-base min-w-[120px]">客戶</th>
                   <th class="th-base min-w-[110px]">清運業者</th>
-                  <th class="th-base min-w-[100px]">有效起</th>
-                  <th class="th-base min-w-[100px]">有效迄</th>
-                  <th class="th-base min-w-[110px]">載運數量</th>
                   <th class="th-base min-w-[120px]">載運土質</th>
+                  <th class="th-base min-w-[110px]">載運米數</th>
                   <th class="th-base min-w-[160px]">狀態說明</th>
                   <th class="th-base min-w-[160px]">備註說明</th>
                   <th class="th-base min-w-[110px]">建檔人員</th>
@@ -98,13 +97,17 @@
                 </tr>
                 <tr v-else v-for="item in rows" :key="item.id" class="hover:bg-gray-50 transition-colors duration-200">
                   <td class="td-base">{{ item.batch_no }}</td>
-                  <td class="td-base truncate max-w-[20rem]" :title="item.project_name">{{ item.project_name }}</td>
+                  <td class="td-base truncate max-w-[20rem]" :title="item.project_name" >
+                    <a v-if="item.closure_status !== 'closed'" href="return false;" @click.prevent="openEditModal(item)" class="text-blue-600 hover:text-blue-800 cursor-pointer">{{ item.project_name }}</a>
+                    <span v-else class="text-gray-500">{{ item.project_name }}</span>
+                  </td>
                   <td class="td-base">{{ item.flow_control_no }}</td>
                   <td class="td-base">{{ formatDate(item.issue_date) }}</td>
+                  <td class="td-base">{{ formatDate(item.valid_date_from) }}<br>{{ formatDate(item.valid_date_to) }}</td>
                   <td class="td-base">
                     <div class="flex items-center gap-2">
                       <span>{{ item.issue_count ?? 0 }}</span>
-                      <button @click="openAdjustModal(item)" class="btn-adjust" title="調整張數">調整</button>
+                      <button @click="openAdjustModal(item)" class="btn-adjust" title="調整張數" :disabled="item.closure_status === 'closed'">調整</button>
                     </div>
                     <div v-if="item.voided_count || item.recycled_count" class="text-xs text-gray-500 mt-1">
                       <span v-if="item.voided_count">作廢：{{ item.voided_count }}</span>
@@ -123,10 +126,17 @@
                       <span v-else class="text-gray-400">-</span>
                     </div>
                   </td>
-                  <td class="td-base">{{ formatDate(item.valid_date_from) }}</td>
-                  <td class="td-base">{{ formatDate(item.valid_date_to) }}</td>
+                  <td class="td-base">
+                    <div class="flex items-center gap-1 flex-wrap">
+                      <template v-if="item.carry_soil_type && item.carry_soil_type.length > 0">
+                        <span v-for="(code, idx) in item.carry_soil_type" :key="idx" class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-50 text-green-700 border border-green-200">
+                          {{ getSoilTypeName(code) }}
+                        </span>
+                      </template>
+                      <span v-else class="text-gray-400">-</span>
+                    </div>
+                  </td>
                   <td class="td-base">{{ item.carry_qty }}</td>
-                  <td class="td-base">{{ item.carry_soil_type }}</td>
                   <td class="td-base truncate max-w-[20rem]" :title="item.status_desc">
                     {{ item.status_desc || '-' }}
                   </td>
@@ -136,17 +146,30 @@
                   <td class="td-base">{{ item.created_by_name }}</td>
                   <td class="td-base">{{ item.updated_by_name }}</td>
                   <td class="td-base">{{ item.sys_serial_no }}</td>
-                  <td class="td-base">{{ item.status }}</td>
+                  <td class="td-base">
+                    <span v-if="item.closure_status === 'closed'" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700 border border-red-300">
+                      已結案
+                    </span>
+                    <span v-else class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 border border-green-300">
+                      進行中
+                    </span>
+                  </td>
                   <td class="td-base font-medium">
                     <div class="action-buttons">
-                      <button @click="openEditModal(item)" class="action-btn action-btn--edit" title="編輯">
+                      <button @click="openEditModal(item)" class="action-btn action-btn--edit" title="編輯" :disabled="item.closure_status === 'closed'">
                         <i class="fas fa-edit action-icon"></i>
                       </button>
-                      <button @click="openDeleteModal(item)" class="action-btn action-btn--delete" title="刪除">
+                      <button @click="openDeleteModal(item)" class="action-btn action-btn--delete" title="刪除" :disabled="item.closure_status === 'closed'">
                         <i class="fas fa-trash action-icon"></i>
                       </button>
-                      <button @click="openPrint(item)" class="action-btn action-btn--print" title="列印未列印">
+                      <button @click="openPrint(item)" class="action-btn action-btn--print" title="列印未列印" :disabled="item.closure_status === 'closed'">
                         <i class="fas fa-print action-icon"></i>
+                      </button>
+                      <button v-if="item.closure_status !== 'closed'" @click="openCloseModal(item)" class="action-btn action-btn--close" title="結案">
+                        <i class="fas fa-check-circle action-icon"></i>
+                      </button>
+                      <button v-else @click="viewClosureCertificate(item)" class="action-btn action-btn--view" title="查看結案證明">
+                        <i class="fas fa-file-image action-icon"></i>
                       </button>
                     </div>
                   </td>
@@ -226,6 +249,14 @@
                   <input v-model="form.flow_control_no" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div>
+                  <label class="label-base">工程期限（起）</label>
+                  <input v-model="form.valid_date_from" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div>
+                  <label class="label-base">工程期限（迄）</label>
+                  <input v-model="form.valid_date_to" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                </div>
+                <div class="md:col-span-2">
                   <label class="label-base">客戶</label>
                   <select v-model.number="form.customer_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" :class="{ 'border-red-500': errors.customer_id }">
                     <option :value="0">請選擇</option>
@@ -233,7 +264,7 @@
                   </select>
                   <p v-if="errors.customer_id" class="text-red-500 text-xs mt-1">{{ errors.customer_id }}</p>
                 </div>
-                <div>
+                <div class="md:col-span-2">
                   <label class="label-base">土方清運業者（可多選）</label>
                   <Multiselect
                     v-model="form.cleaner_ids"
@@ -253,21 +284,27 @@
                   <p v-if="errors.cleaner_ids" class="text-red-500 text-xs mt-1">{{ errors.cleaner_ids }}</p>
                   <p class="text-xs text-gray-500 mt-1">已選擇 {{ form.cleaner_ids?.length || 0 }} 個清運業者</p>
                 </div>
-                <div>
-                  <label class="label-base">有效期限（起）</label>
-                  <input v-model="form.valid_date_from" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                <div class="md:col-span-2">
+                  <label class="label-base">載運土質（可多選）</label>
+                  <Multiselect
+                    v-model="form.carry_soil_type"
+                    :options="soilTypeOptions"
+                    mode="tags"
+                    :close-on-select="false"
+                    :searchable="true"
+                    :clear-on-select="false"
+                    :preserve-search="true"
+                    placeholder="請選擇載運土質"
+                    label="display"
+                    valueProp="code"
+                    trackBy="code"
+                    :maxHeight="200"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">已選擇 {{ form.carry_soil_type?.length || 0 }} 種土質</p>
                 </div>
-                <div>
-                  <label class="label-base">有效期限（迄）</label>
-                  <input v-model="form.valid_date_to" type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-                </div>
-                <div>
-                  <label class="label-base">載運數量</label>
-                  <input v-model.number="form.carry_qty" type="number" min="0" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-                </div>
-                <div>
-                  <label class="label-base">載運土質</label>
-                  <input v-model="form.carry_soil_type" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                <div class="md:col-span-2">
+                  <label class="label-base">載運米數</label>
+                  <input v-model.number="form.carry_qty" type="number" min="0" step="0.01" @focus="$event.target.select()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
                 </div>
                 <div class="md:col-span-2">
                   <label class="label-base">狀態說明</label>
@@ -315,72 +352,143 @@
 
     <!-- Adjust Count Modal -->
     <div v-if="showAdjustModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full z-50 flex items-center justify-center p-4">
-      <div class="relative mx-auto px-6 py-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="flex items-center justify-between mb-3">
+      <div class="relative mx-auto px-6 py-5 border w-96 shadow-lg rounded-md bg-white" style="width: 480px;">
+        <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">調整開立張數</h3>
           <button @click="closeAdjustModal" class="text-gray-400 hover:text-gray-600">
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <div class="space-y-4">
-          <div>
-            <label class="label-base">操作</label>
-            <div class="flex items-center gap-6">
-              <label class="inline-flex items-center gap-2">
-                <input type="radio" value="add" v-model="adjustAction" />
-                <span>增加</span>
-              </label>
-              <label class="inline-flex items-center gap-2">
-                <input type="radio" value="remove" v-model="adjustAction" />
-                <span>減少（僅刪未核銷）</span>
-              </label>
-            </div>
-          </div>
-          <div class="text-sm text-gray-700 space-y-1">
+
+        <div class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+          <!-- 統計資訊 -->
+          <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">
             <div v-if="loadingAdjustTotals" class="text-gray-500 flex items-center gap-2">
               <i class="fas fa-spinner fa-spin"></i>
               讀取統計中...
             </div>
             <template v-else>
-              <div>總張數：<span class="font-semibold">{{ adjustTotals?.total ?? 0 }}</span></div>
-              <div>已印數量：<span class="font-semibold">{{ adjustTotals?.verified ?? 0 }}</span></div>
-              <div>未印張數：<span class="font-semibold">{{ adjustTotals?.pending ?? 0 }}</span></div>
+              <div class="flex justify-between gap-4">
+                <span>總米數：<span class="font-semibold">{{ adjustTotals?.total ?? 0 }} 米</span></span>
+                <span>已印：<span class="font-semibold">{{ adjustTotals?.verified ?? 0 }}</span></span>
+                <span>未印：<span class="font-semibold">{{ adjustTotals?.pending ?? 0 }}</span></span>
+              </div>
             </template>
           </div>
-          <div>
-            <label class="label-base">數量</label>
-            <input
-              type="number"
-              min="1"
-              :max="adjustAction === 'remove' ? (adjustTotals?.pending || 0) : null"
-              v-model.number="adjustCount"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-            <p v-if="adjustAction === 'remove' && Number(adjustCount) > (adjustTotals?.pending || 0)" class="text-red-600 text-xs mt-1">
-              減少數量不可超過未印張數（{{ adjustTotals?.pending || 0 }}）
+
+          <!-- 米數張數輸入 -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-gray-900">增加張數</label>
+            <div v-for="meterType in meterTypeOptions" :key="meterType.value" class="flex items-center gap-2">
+              <span class="w-12">{{ meterType.label }}</span>
+              <input
+                type="number"
+                min="0"
+                v-model.number="adjustByMeters[meterType.field]"
+                @focus="$event.target.select()"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+              <span class="w-6 text-gray-500">張</span>
+            </div>
+          </div>
+
+          <!-- 總米數計算 -->
+          <div class="bg-amber-50 p-3 rounded-md border border-amber-200">
+            <div class="text-sm font-semibold text-amber-900">
+              合計：<span>{{ totalCalculatedMeters }}</span> / {{ adjustTarget?.carry_qty || 0 }} 米
+            </div>
+            <p v-if="totalCalculatedMeters > (adjustTarget?.carry_qty || 0)" class="text-red-600 text-xs mt-2">
+              ❌ 超過限制
             </p>
           </div>
-          <div v-if="adjustAction === 'add'">
-            <label class="label-base">使用起始日期</label>
-            <input
-              type="date"
-              v-model="adjustUseStartDate"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
-          </div>
-          <div v-if="adjustAction === 'add'">
-            <label class="label-base">使用結束日期</label>
-            <input
-              type="date"
-              v-model="adjustUseEndDate"
-              :min="adjustUseStartDate"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+
+          <!-- 使用期限 -->
+          <div class="grid grid-cols-2 gap-3 border-t pt-3">
+            <div class="relative">
+              <input
+                type="date"
+                v-model="adjustUseStartDate"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent peer" />
+              <label class="absolute left-3 -top-5 text-xs font-medium text-gray-600 bg-white px-1">使用起始日期</label>
+            </div>
+
+            <div class="relative">
+              <input
+                type="date"
+                v-model="adjustUseEndDate"
+                :min="adjustUseStartDate"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent peer" />
+              <label class="absolute left-3 -top-5 text-xs font-medium text-gray-600 bg-white px-1">使用結束日期</label>
+            </div>
           </div>
         </div>
-        <div class="mt-5 flex justify-end gap-3">
+
+        <div class="mt-4 flex justify-end gap-3 border-t pt-4">
           <button @click="closeAdjustModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">取消</button>
-          <button @click="submitAdjust" :disabled="submittingAdjust" class="px-4 py-2 text-sm font-medium text-white bg-amber-600 border border-transparent rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed">
+          <button @click="submitAdjust" :disabled="submittingAdjust || totalCalculatedMeters > (adjustTarget?.carry_qty || 0)" class="px-4 py-2 text-sm font-medium text-white bg-amber-600 border border-transparent rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed">
             <i v-if="submittingAdjust" class="fas fa-spinner fa-spin mr-2"></i>
             確認
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Close Project Modal -->
+    <div v-if="showCloseModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">確認結案</h3>
+            <button @click="closeCloseModal" class="text-gray-400 hover:text-gray-600">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500 mb-4">
+              您確定要結案工程「{{ itemToClose?.project_name }}」嗎？<br>
+              結案後將無法再進行編輯、刪除及列印操作，<br>
+              上傳的照片將嵌入結案證明 PDF 文件中。
+            </p>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  結案現場照片 <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  ref="certificateInput"
+                  @change="handleCertificateChange"
+                  accept="image/*"
+                  class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                />
+                <p class="text-xs text-gray-500 mt-1">請上傳結案現場照片（最大5MB），將嵌入證明書中</p>
+                <p v-if="closureErrors.certificate" class="text-xs text-red-500 mt-1">{{ closureErrors.certificate }}</p>
+              </div>
+
+              <div v-if="certificatePreview" class="border rounded-md p-2">
+                <img :src="certificatePreview" alt="預覽" class="max-w-full h-auto max-h-48 mx-auto" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  結案備註
+                </label>
+                <textarea
+                  v-model="closureRemark"
+                  rows="3"
+                  class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="請輸入結案相關說明（選填）"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-center space-x-3 pt-4">
+            <button @click="closeCloseModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">取消</button>
+            <button @click="confirmClose" :disabled="closing || !closureCertificate" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
+              <i v-if="closing" class="fas fa-spinner fa-spin mr-2"></i>
+              確認結案
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -401,6 +509,7 @@ import Multiselect from '@vueform/multiselect'
 import '@vueform/multiselect/themes/default.css'
 import PrintDialog from '@/components/PrintDialog.vue'
 import { useToast } from '@/composables/useToast'
+import { usePagination } from '@/composables/usePagination'
 import earthDataAPI from '../api/earthData.js'
 import commonAPI from '../api/common.js'
 
@@ -421,31 +530,112 @@ const isEditing = ref(false)
 const submitting = ref(false)
 const deleting = ref(false)
 const itemToDelete = ref(null)
+
+// close project modal state
+const showCloseModal = ref(false)
+const itemToClose = ref(null)
+const closureCertificate = ref(null)
+const certificatePreview = ref(null)
+const closureRemark = ref('')
+const closing = ref(false)
+const closureErrors = ref({})
+const certificateInput = ref(null)
+
+// print modal state
+const showPrintModal = ref(false)
+const printTarget = ref(null)
+const printCount = ref(1)
+const printTotals = ref({ total: 0, verified: 0, pending: 0 })
+const loadingPrintTotals = ref(false)
+
 // adjust count modal state
 const showAdjustModal = ref(false)
 const adjustTarget = ref(null)
 const adjustAction = ref('add')
-const adjustCount = ref(1)
 const adjustUseStartDate = ref('')
 const adjustUseEndDate = ref('')
+const adjustByMeters = reactive({})
 const submittingAdjust = ref(false)
 const adjustTotals = ref({ total: 0, verified: 0, pending: 0 })
 const loadingAdjustTotals = ref(false)
 
-// print dialog state
-const showPrintModal = ref(false)
-const printTarget = ref(null)
-const printTotals = ref({ total: 0, verified: 0, pending: 0 })
-const printCount = ref(1)
-const loadingPrintTotals = ref(false)
+// 計算總米數
+const totalCalculatedMeters = computed(() => {
+  return meterTypeOptions.value.reduce((total, meterType) => {
+    const count = adjustByMeters[meterType.field] || 0
+    return total + (count * meterType.value)
+  }, 0)
+})
 
 // options for selects
 const cleanerOptions = ref([])
 const customerOptions = ref([])
+const soilTypeOptions = ref([])
+const meterTypeOptions = ref([])
+
+// 載入客戶選項
+const loadCustomerOptions = async () => {
+  try {
+    const resp = await commonAPI.customers()
+    console.log('客戶 API 回應:', resp)
+    if (resp.status) {
+      customerOptions.value = Array.isArray(resp.data) ? resp.data : []
+      console.log('客戶選項:', customerOptions.value)
+    }
+  } catch (e) {
+    console.error('載入客戶選項錯誤:', e)
+  }
+}
+
+// 載入清運業者選項
+const loadCleanerOptions = async () => {
+  try {
+    const resp = await commonAPI.cleaners()
+    console.log('清運業者 API 回應:', resp)
+    if (resp.status) {
+      cleanerOptions.value = Array.isArray(resp.data) ? resp.data : []
+      console.log('清運業者選項:', cleanerOptions.value)
+    }
+  } catch (e) {
+    console.error('載入清運業者選項錯誤:', e)
+  }
+}
+
+// 載入土質類型選項
+const loadSoilTypeOptions = async () => {
+  try {
+    const resp = await commonAPI.soilTypes()
+    console.log('土質類型 API 回應:', resp)
+    if (resp.status) {
+      soilTypeOptions.value = Array.isArray(resp.data) ? resp.data : []
+      console.log('土質類型選項:', soilTypeOptions.value)
+    }
+  } catch (e) {
+    console.error('載入土質類型選項錯誤:', e)
+  }
+}
+
+// 載入米數類型選項
+const loadMeterTypeOptions = async () => {
+  try {
+    const resp = await commonAPI.meterTypes()
+    console.log('米數類型 API 回應:', resp)
+    if (resp.status) {
+      meterTypeOptions.value = Array.isArray(resp.data) ? resp.data : []
+      // 初始化 adjustByMeters 的欄位
+      meterTypeOptions.value.forEach(meterType => {
+        adjustByMeters[meterType.field] = 0
+      })
+      console.log('米數類型選項:', meterTypeOptions.value)
+    }
+  } catch (e) {
+    console.error('載入米數類型選項錯誤:', e)
+  }
+}
 
 // inline edit state
-const editing = reactive({}) // map: id -> shallow copy of editing values
-const editingField = reactive({}) // map: id -> active field name
+const editing = reactive({})
+const editingField = reactive({})
 
 const isEditingCell = (id, field) => editingField[id] === field
 
@@ -471,8 +661,6 @@ const submitInline = async (item, field) => {
     }
   } catch (e) {
     showToast(e.message || '更新失敗', 'error')
-  } finally {
-    // keep editing buffers so inputs remain editable
   }
 }
 
@@ -488,7 +676,7 @@ const form = reactive({
   project_name: '',
   flow_control_no: '',
   carry_qty: 0,
-  carry_soil_type: '',
+  carry_soil_type: [],
   status_desc: '',
   remark_desc: '',
   sys_serial_no: '',
@@ -504,50 +692,6 @@ const debouncedSearch = () => {
     loadEarthData()
   }, 500)
 }
-
-// load select options
-const loadCleanerOptions = async () => {
-  try {
-    const resp = await commonAPI.cleaners()
-    if (resp.status) {
-      cleanerOptions.value = Array.isArray(resp.data) ? resp.data : []
-    }
-  } catch (e) {}
-}
-
-const loadCustomerOptions = async () => {
-  try {
-    const resp = await commonAPI.customers()
-    if (resp.status) {
-      customerOptions.value = Array.isArray(resp.data) ? resp.data : []
-    }
-  } catch (e) {}
-}
-
-const visiblePages = computed(() => {
-  if (!pagination.value) return []
-  const current = pagination.value.current_page
-  const last = pagination.value.last_page
-  const pages = []
-  if (last <= 7) {
-    for (let i = 1; i <= last; i++) pages.push(i)
-  } else if (current <= 4) {
-    for (let i = 1; i <= 5; i++) pages.push(i)
-    pages.push('...')
-    pages.push(last)
-  } else if (current >= last - 3) {
-    pages.push(1)
-    pages.push('...')
-    for (let i = last - 4; i <= last; i++) pages.push(i)
-  } else {
-    pages.push(1)
-    pages.push('...')
-    for (let i = current - 1; i <= current + 1; i++) pages.push(i)
-    pages.push('...')
-    pages.push(last)
-  }
-  return pages
-})
 
 const loadEarthData = async (page = 1) => {
   try {
@@ -583,11 +727,8 @@ const loadEarthData = async (page = 1) => {
   }
 }
 
-const goToPage = (page) => {
-  if (page >= 1 && page <= pagination.value.last_page) {
-    loadEarthData(page)
-  }
-}
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, loadEarthData)
 
 const openCreateModal = () => {
   isEditing.value = false
@@ -595,6 +736,7 @@ const openCreateModal = () => {
   // ensure options are ready
   if (cleanerOptions.value.length === 0) loadCleanerOptions()
   if (customerOptions.value.length === 0) loadCustomerOptions()
+  if (soilTypeOptions.value.length === 0) loadSoilTypeOptions()
   showModal.value = true
 }
 
@@ -616,7 +758,14 @@ const openEditModal = (item) => {
   form.valid_date_from = item.valid_date_from || ''
   form.valid_date_to = item.valid_date_to || ''
   form.carry_qty = item.carry_qty ?? 0
-  form.carry_soil_type = item.carry_soil_type || ''
+  // 處理載運土質（可能是陣列或字串）
+  if (Array.isArray(item.carry_soil_type)) {
+    form.carry_soil_type = item.carry_soil_type
+  } else if (item.carry_soil_type) {
+    form.carry_soil_type = [item.carry_soil_type]
+  } else {
+    form.carry_soil_type = []
+  }
   form.status_desc = item.status_desc || ''
   form.remark_desc = item.remark_desc || ''
   form.sys_serial_no = item.sys_serial_no || ''
@@ -624,6 +773,7 @@ const openEditModal = (item) => {
   // ensure options are ready
   if (cleanerOptions.value.length === 0) loadCleanerOptions()
   if (customerOptions.value.length === 0) loadCustomerOptions()
+  if (soilTypeOptions.value.length === 0) loadSoilTypeOptions()
   errors.value = {}
   showModal.value = true
 }
@@ -644,12 +794,107 @@ const closeDeleteModal = () => {
   itemToDelete.value = null
 }
 
+const openCloseModal = (item) => {
+  itemToClose.value = item
+  closureCertificate.value = null
+  certificatePreview.value = null
+  closureRemark.value = ''
+  closureErrors.value = {}
+  showCloseModal.value = true
+}
+
+const closeCloseModal = () => {
+  showCloseModal.value = false
+  itemToClose.value = null
+  closureCertificate.value = null
+  certificatePreview.value = null
+  closureRemark.value = ''
+  closureErrors.value = {}
+}
+
+const handleCertificateChange = (event) => {
+  const file = event.target.files[0]
+  closureErrors.value = {}
+
+  if (!file) {
+    closureCertificate.value = null
+    certificatePreview.value = null
+    return
+  }
+
+  // 驗證檔案類型
+  if (!file.type.startsWith('image/')) {
+    closureErrors.value.certificate = '請選擇圖片檔案'
+    closureCertificate.value = null
+    certificatePreview.value = null
+    return
+  }
+
+  // 驗證檔案大小（5MB）
+  if (file.size > 5 * 1024 * 1024) {
+    closureErrors.value.certificate = '圖片大小不可超過 5MB'
+    closureCertificate.value = null
+    certificatePreview.value = null
+    return
+  }
+
+  closureCertificate.value = file
+
+  // 產生預覽
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    certificatePreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const confirmClose = async () => {
+  if (!itemToClose.value) return
+  if (!closureCertificate.value) {
+    closureErrors.value.certificate = '請上傳結案照片'
+    return
+  }
+
+  try {
+    closing.value = true
+
+    const formData = new FormData()
+    formData.append('certificate', closureCertificate.value)
+    formData.append('closure_remark', closureRemark.value)
+
+    const resp = await earthDataAPI.close(itemToClose.value.id, formData)
+
+    if (resp.status) {
+      showToast('工程結案成功，結案證明已產生', 'success')
+      closeCloseModal()
+      loadEarthData()
+    } else {
+      throw new Error(resp.message || '結案失敗')
+    }
+  } catch (error) {
+    console.error('結案錯誤:', error)
+    showToast(error.message || '結案失敗', 'error')
+  } finally {
+    closing.value = false
+  }
+}
+
+const viewClosureCertificate = (item) => {
+  if (item.id) {
+    // 開啟結案證明 HTML 頁面（可在瀏覽器中列印為 PDF）
+    window.open(`/print/earth-data/${item.id}/closure-certificate`, '_blank')
+  } else {
+    showToast('無結案證明', 'warning')
+  }
+}
+
 const openAdjustModal = async (item) => {
   adjustTarget.value = item
   adjustAction.value = 'add'
-  adjustCount.value = 1
-  adjustUseStartDate.value = ''
-  adjustUseEndDate.value = ''
+  // 重置所有米數輸入
+  meterTypeOptions.value.forEach(meterType => {
+    adjustByMeters[meterType.field] = 0
+  })
   adjustTotals.value = { total: 0, verified: 0, pending: 0 }
   showAdjustModal.value = true
   loadingAdjustTotals.value = true
@@ -668,36 +913,39 @@ const openAdjustModal = async (item) => {
 const closeAdjustModal = () => {
   showAdjustModal.value = false
   adjustTarget.value = null
+  // 重置所有米數輸入
+  meterTypeOptions.value.forEach(meterType => {
+    adjustByMeters[meterType.field] = 0
+  })
 }
 
 const submitAdjust = async () => {
   if (!adjustTarget.value) return
   try {
     submittingAdjust.value = true
-    if (adjustAction.value === 'remove') {
-      const pending = Number(adjustTotals.value?.pending || 0)
-      const count = Number(adjustCount.value || 0)
-      if (!Number.isFinite(count) || count <= 0) {
-        showToast('請輸入正確的數量', 'error')
-        return
-      }
-      if (count > pending) {
-        showToast(`減少數量不可超過未印張數（${pending}）`, 'error')
-        return
-      }
+
+    // 驗證米數
+    const totalMeters = totalCalculatedMeters.value
+    if (adjustAction.value === 'add' && totalMeters <= 0) {
+      showToast('請輸入至少一個米數的張數', 'error')
+      return
     }
+    if (totalMeters > (adjustTarget.value.carry_qty || 0)) {
+      showToast(`總米數不可超過案件載運米數限制（${adjustTarget.value.carry_qty}米）`, 'error')
+      return
+    }
+
+    // 動態生成 meters payload
+    const meters = {}
+    meterTypeOptions.value.forEach(meterType => {
+      meters[meterType.field] = adjustByMeters[meterType.field] || 0
+    })
+
     const payload = {
       action: adjustAction.value,
-      count: adjustCount.value
+      meters: meters
     }
-    if (adjustAction.value === 'add') {
-      if (adjustUseStartDate.value) {
-        payload.use_start_date = adjustUseStartDate.value
-      }
-      if (adjustUseEndDate.value) {
-        payload.use_end_date = adjustUseEndDate.value
-      }
-    }
+
     const resp = await earthDataAPI.adjustDetails(adjustTarget.value.id, payload)
     if (resp.status) {
       // update current row issue_count
@@ -707,14 +955,6 @@ const submitAdjust = async () => {
       } else {
         // fallback reload
         await loadEarthData(pagination.value?.current_page || 1)
-      }
-      // 若有 totals，可嘗試本地更新
-      if (adjustAction.value === 'add') {
-        adjustTotals.value.total = Number(adjustTotals.value.total || 0) + Number(adjustCount.value || 0)
-        adjustTotals.value.pending = Number(adjustTotals.value.pending || 0) + Number(adjustCount.value || 0)
-      } else if (adjustAction.value === 'remove') {
-        adjustTotals.value.total = Math.max(0, Number(adjustTotals.value.total || 0) - Number(adjustCount.value || 0))
-        adjustTotals.value.pending = Math.max(0, Number(adjustTotals.value.pending || 0) - Number(adjustCount.value || 0))
       }
       showToast('調整成功', 'success')
       closeAdjustModal()
@@ -790,7 +1030,7 @@ const resetForm = () => {
   form.project_name = ''
   form.flow_control_no = ''
   form.carry_qty = 0
-  form.carry_soil_type = ''
+  form.carry_soil_type = []
   form.status_desc = ''
   form.remark_desc = ''
   form.sys_serial_no = ''
@@ -859,12 +1099,20 @@ const formatDateTime = (dateString) => {
   return date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+// 取得土質名稱
+const getSoilTypeName = (code) => {
+  const type = soilTypeOptions.value.find(t => t.code === code)
+  return type ? type.code : code
+}
+
 watch([sortBy, sortOrder], () => { loadEarthData() })
 
-onMounted(() => { 
+onMounted(() => {
   loadEarthData()
   loadCleanerOptions()
   loadCustomerOptions()
+  loadSoilTypeOptions()
+  loadMeterTypeOptions()
 })
 </script>
 

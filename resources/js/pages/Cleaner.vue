@@ -382,6 +382,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { usePagination } from '@/composables/usePagination'
 import cleanerAPI from '../api/cleaner.js'
 
 const items = ref([])
@@ -422,20 +423,11 @@ const vehicleForm = reactive({
   notes: ''
 })
 
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, load)
+
 let searchTimeout = null
 const debouncedSearch = () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => load(), 500) }
-
-const visiblePages = computed(() => {
-  if (!pagination.value) return []
-  const current = pagination.value.current_page
-  const last = pagination.value.last_page
-  const pages = []
-  if (last <= 7) { for (let i = 1; i <= last; i++) pages.push(i) }
-  else if (current <= 4) { for (let i = 1; i <= 5; i++) pages.push(i); pages.push('...'); pages.push(last) }
-  else if (current >= last - 3) { pages.push(1); pages.push('...'); for (let i = last - 4; i <= last; i++) pages.push(i) }
-  else { pages.push(1); pages.push('...'); for (let i = current - 1; i <= current + 1; i++) pages.push(i); pages.push('...'); pages.push(last) }
-  return pages
-})
 
 const load = async (page = 1) => {
   try {
@@ -462,8 +454,6 @@ const load = async (page = 1) => {
   }
 }
 
-const goToPage = (page) => { if (page >= 1 && page <= pagination.value.last_page) load(page) }
-
 const openCreate = () => { isEditing.value = false; resetForm(); showModal.value = true }
 const openEdit = (it) => {
   isEditing.value = true
@@ -473,24 +463,24 @@ const openEdit = (it) => {
   form.contact_person = it.contact_person
   form.phone = it.phone
   form.status = it.status
-  
+
   errors.value = {}
   showModal.value = true
 }
 
-const closeModal = () => { 
-  showModal.value = false; 
-  resetForm(); 
-  errors.value = {} 
+const closeModal = () => {
+  showModal.value = false;
+  resetForm();
+  errors.value = {}
 }
 
-const resetForm = () => { 
-  form.id=null; 
-  form.cleaner_name=''; 
-  form.tax_id=''; 
-  form.contact_person=''; 
-  form.phone=''; 
-  form.status='active' 
+const resetForm = () => {
+  form.id=null;
+  form.cleaner_name='';
+  form.tax_id='';
+  form.contact_person='';
+  form.phone='';
+  form.status='active'
 }
 
 const submit = async () => {
@@ -602,7 +592,7 @@ const submitVehicle = async () => {
   try {
     vehicleSubmitting.value = true
     vehicleErrors.value = {}
-    
+
     if (!currentCleaner.value) {
       throw new Error('清運業者資訊不存在')
     }

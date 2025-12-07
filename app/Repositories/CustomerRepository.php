@@ -218,5 +218,18 @@ class CustomerRepository extends BaseRepository
 
         return $query->count();
     }
-}
 
+    /**
+     * 取得啟用的客戶列表（用於下拉選單）
+     */
+    public function getActiveList(int $companyId): array
+    {
+        return $this->model
+            ->where('company_id', $companyId)
+            ->where('status', 'active')
+            ->select('id', 'customer_name as name')
+            ->orderBy('customer_name')
+            ->get()
+            ->toArray();
+    }
+}

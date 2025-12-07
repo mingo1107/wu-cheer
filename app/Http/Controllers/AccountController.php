@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class AccountController extends Controller
 {
@@ -64,7 +65,7 @@ class AccountController extends Controller
                 'user_id' => $data['user']['id'],
                 'email' => $data['user']['email']
             ]);
-            
+
             return response()->json(
                 $this->apiOutput->successFormat($data, '登入成功'),
                 200
@@ -77,14 +78,14 @@ class AccountController extends Controller
                 '請先驗證您的電子郵件',
                 '電子郵件和密碼為必填欄位'
             ];
-            
+
             if (in_array($e->getMessage(), $authErrors)) {
                 // 認證錯誤，返回 200 但 status 為 false
                 Log::info('使用者登入認證失敗', [
                     'email' => $request->input('email'),
                     'error' => $e->getMessage()
                 ]);
-                
+
                 return response()->json(
                     $this->apiOutput->failFormat($e->getMessage(), [], 200),
                     200
@@ -150,25 +151,20 @@ class AccountController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function me(Request $request): JsonResponse
+    public function me(): JsonResponse
     {
         try {
-            // 呼叫 Service 取得使用者資訊
-            $data = $this->accountService->getCurrentUser();
+            $user = Auth::user();
 
             return response()->json(
-                $this->apiOutput->successFormat($data, '取得使用者資訊成功'),
-                200
+                $this->apiOutput->successFormat($user, '取得帳戶資訊成功')
             );
-
         } catch (\Exception $e) {
-            Log::error('取得使用者資訊系統錯誤', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+            Log::error('取得帳戶資訊失敗', [
+                'error' => $e->getMessage()
             ]);
-
             return response()->json(
-                $this->apiOutput->exceptionFormat('系統錯誤，請稍後再試', 500, $e),
+                $this->apiOutput->failFormat('取得帳戶資訊失敗', [], 500),
                 500
             );
         }
@@ -243,14 +239,14 @@ class AccountController extends Controller
                 '新密碼不能與目前密碼相同',
                 '使用者未登入'
             ];
-            
+
             if (in_array($e->getMessage(), $authErrors)) {
                 // 認證錯誤，返回 200 但 status 為 false
                 Log::info('使用者修改密碼認證失敗', [
                     'user_id' => $user ? $user->id : null,
                     'error' => $e->getMessage()
                 ]);
-                
+
                 return response()->json(
                     $this->apiOutput->failFormat($e->getMessage(), [], 200),
                     200

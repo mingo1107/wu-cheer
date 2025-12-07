@@ -41,21 +41,21 @@ class EarthDataService extends BaseService
     {
         try {
             DB::beginTransaction();
-            
+
             // 提取 cleaner_ids
             $cleanerIds = $data['cleaner_ids'] ?? [];
             unset($data['cleaner_ids']);
-            
+
             $item = $this->repo->create($data);
-            
+
             // 同步多對多關係
             if (!empty($cleanerIds)) {
                 $item->cleaners()->sync($cleanerIds);
             }
-            
+
             // 重新載入關聯
             $item->load('cleaners');
-            
+
             DB::commit();
             Log::info('土單資料建立成功', ['id' => $item->id]);
             return $item;
@@ -75,27 +75,27 @@ class EarthDataService extends BaseService
             }
 
             DB::beginTransaction();
-            
+
             // 提取 cleaner_ids
             $cleanerIds = null;
             if (isset($data['cleaner_ids'])) {
                 $cleanerIds = $data['cleaner_ids'];
                 unset($data['cleaner_ids']);
             }
-            
+
             $updated = $this->repo->update($id, $data);
             if (! $updated) {
                 throw new \Exception('更新土單資料失敗');
             }
-            
+
             // 同步多對多關係（如果提供了 cleaner_ids）
             if ($cleanerIds !== null) {
                 $item->cleaners()->sync($cleanerIds);
             }
-            
+
             $item = $this->repo->find($id);
             $item->load('cleaners');
-            
+
             DB::commit();
 
             Log::info('土單資料更新成功', ['id' => $id]);
@@ -127,17 +127,42 @@ class EarthDataService extends BaseService
     }
 
     // add/remove detail rows and update issue_count atomically
-    public function adjustDetails(int $earthDataId, string $action, int $count, ?string $useStartDate = null, ?string $useEndDate = null): array
+    public function adjustDetails(int $earthDataId, string $action, int $count = 0, ?string $useStartDate = null, ?string $useEndDate = null, array $meterQuantities = []): array
     {
         $earthData = $this->repo->find($earthDataId);
         if (! $earthData) {
             throw new \Exception('土單資料不存在');
         }
 
+        // 驗證米數數量總和不超過案件的載運米數
+        if (!empty($meterQuantities) && $action === 'add') {
+            $totalMeter = 0;
+            foreach ($meterQuantities as $meterType => $qty) {
+                $totalMeter += (int) $meterType * (int) $qty;
+            }
+
+            if ($totalMeter > 0 && $earthData->carry_qty > 0) {
+                if ($totalMeter > $earthData->carry_qty) {
+                    throw new \Exception(sprintf(
+                        '總米數(%d米)不可超過案件定義的載運米數(%d米)',
+                        $totalMeter,
+                        $earthData->carry_qty
+                    ));
+                }
+            }
+        }
+
         $affected = 0;
-        DB::transaction(function () use (&$affected, $action, $count, $earthData, $useStartDate, $useEndDate) {
+        DB::transaction(function () use (&$affected, $action, $count, $earthData, $useStartDate, $useEndDate, $meterQuantities) {
             if ($action === 'add') {
-                $affected = $this->detailRepo->addDetails($earthData->id, (string) ($earthData->flow_control_no ?? ''), $count, $useStartDate, $useEndDate);
+                $affected = $this->detailRepo->addDetails(
+                    $earthData->id,
+                    (string) ($earthData->flow_control_no ?? ''),
+                    $count,
+                    $useStartDate,
+                    $useEndDate,
+                    $meterQuantities
+                );
                 $earthData->increment('issue_count', $affected);
             } else {
                 $affected = $this->detailRepo->removeDetails($earthData->id, $count);
@@ -193,4 +218,55 @@ class EarthDataService extends BaseService
             throw $e;
         }
     }
+
+    /**
+     * 結案工程（產生 PDF 證明，包含上傳的照片）
+     */
+    public function closeProject(int $id, array $data): EarthData
+    {
+        try {
+            DB::beginTransaction();
+
+            $earthData = $this->repo->find($id);
+            if (!$earthData) {
+                throw new \Exception('土單資料不存在');
+            }
+
+            if ($earthData->closure_status === 'closed') {
+                throw new \Exception('此工程已結案');
+            }
+
+            // 處理圖片上傳
+            $photoPath = null;
+            if (isset($data['certificate']) && $data['certificate']) {
+                $file = $data['certificate'];
+                $filename = 'closure_photo_' . $earthData->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $photoPath = $file->storeAs('closure_certificates', $filename, 'public');
+            }
+
+            // 更新結案資訊
+            $updateData = [
+                'closure_status' => 'closed',
+                'closed_at' => now(),
+                'closed_by' => auth('api')->user()->name ?? 'system',
+                'closure_certificate_path' => $photoPath,
+                'closure_remark' => $data['closure_remark'] ?? '',
+            ];
+
+            $this->repo->update($id, $updateData);
+
+            // 重新載入以取得更新後的資料
+            $earthData->refresh();
+
+            DB::commit();
+            Log::info('工程結案成功', ['id' => $id, 'photo' => $photoPath]);
+
+            return $earthData;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('工程結案失敗', ['error' => $e->getMessage(), 'id' => $id]);
+            throw $e;
+        }
+    }
+
 }

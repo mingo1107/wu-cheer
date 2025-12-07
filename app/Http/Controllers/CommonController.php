@@ -6,6 +6,7 @@ use App\Services\CommonService;
 use App\Formatters\ApiOutput;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CommonController extends Controller
 {
@@ -35,6 +36,80 @@ class CommonController extends Controller
             return response()->json($this->apiOutput->successFormat($list, '客戶列表取得成功'));
         } catch (\Exception $e) {
             return response()->json($this->apiOutput->failFormat('取得客戶列表失敗：' . $e->getMessage(), [], 500));
+        }
+    }
+
+    /**
+     * 取得客戶列表（新版 API）
+     */
+    public function customers(): JsonResponse
+    {
+        return $this->getCustomerList();
+    }
+
+    /**
+     * 取得清運業者列表（新版 API）
+     */
+    public function cleaners(): JsonResponse
+    {
+        return $this->getCleanerList();
+    }
+
+    /**
+     * 取得土質類型列表
+     */
+    public function soilTypes(): JsonResponse
+    {
+        try {
+            $soilTypes = config('soil_types');
+
+            // 轉換為前端友善的格式
+            $formattedTypes = collect($soilTypes)->map(function ($name, $code) {
+                return [
+                    'code' => $code,
+                    'name' => $name,
+                    'display' => "{$code} - {$name}"
+                ];
+            })->values();
+
+            return response()->json(
+                $this->apiOutput->successFormat($formattedTypes->toArray(), '取得土質類型列表成功')
+            );
+        } catch (\Exception $e) {
+            Log::error('取得土質類型失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat('取得土質類型失敗', [], 500),
+                500
+            );
+        }
+    }
+
+    /**
+     * 取得米數類型列表
+     */
+    public function meterTypes(): JsonResponse
+    {
+        try {
+            $meterTypes = config('meter_types.types', []);
+
+            // 轉換為前端友善的格式
+            $formattedTypes = collect($meterTypes)->map(function ($config) {
+                return [
+                    'value' => $config['value'],
+                    'label' => $config['label'],
+                    'field' => $config['field'],
+                ];
+            })->values();
+
+            return response()->json(
+                $this->apiOutput->successFormat($formattedTypes->toArray(), '取得米數類型列表成功')
+            );
+        } catch (\Exception $e) {
+            Log::error('取得米數類型失敗', ['error' => $e->getMessage()]);
+            return response()->json(
+                $this->apiOutput->failFormat('取得米數類型失敗', [], 500),
+                500
+            );
         }
     }
 

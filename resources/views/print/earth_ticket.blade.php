@@ -62,7 +62,7 @@
                 <tr>
                   <td width="32%">工程流向管制編號：{{ $earth->flow_control_no ?? '' }}</td>
                   <td width="18%">土質等級：{{ $earth->carry_soil_type ?? '' }}</td>
-                  <td width="20%">載運數量：{{ $earth->carry_qty ?? '' }}</td>
+                  <td width="20%">載運米數：{{ $earth->carry_qty ?? '' }}</td>
                   <td width="30%">有效期間：{{ $earth->valid_date_from ?? '' }} ~ {{ $earth->valid_date_to ?? '' }}</td>
                 </tr>
               </table>
@@ -132,4 +132,3 @@
 </script>
 </body>
 </html>
-

@@ -35,14 +35,14 @@ Route::group([], function () {
 Route::prefix('verifier-platform')->group(function () {
     // 公開路由 - 不需要認證
     Route::post('account/login', [VerifierAccountController::class, 'login'])->name('api.verifier-platform.account.login');
-    
+
     // 需要認證的路由
     Route::middleware('auth:verifier')->group(function () {
         // 核銷人員登出
         Route::post('account/logout', [VerifierAccountController::class, 'logout'])->name('api.verifier-platform.account.logout');
         // 取得目前核銷人員資訊
         Route::get('account/me', [VerifierAccountController::class, 'me'])->name('api.verifier-platform.account.me');
-        
+
         // 核銷作業
         Route::post('verify/pre-check', [VerifierVerifyController::class, 'preCheck'])->name('api.verifier-platform.verify.pre-check');
         Route::post('verify', [VerifierVerifyController::class, 'verify'])->name('api.verifier-platform.verify');
@@ -107,6 +107,8 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('earth-data', EarthDataController::class);
     // 調整土單明細（增加/減少張數）
     Route::post('earth-data/{id}/details/adjust', [EarthDataController::class, 'adjustDetails'])->name('api.earth-data.adjust-details');
+    // 結案工程
+    Route::post('earth-data/{id}/close', [EarthDataController::class, 'close'])->name('api.earth-data.close');
     // 取得指定工程的使用明細
     Route::get('earth-data/{id}/details', [\App\Http\Controllers\EarthDataUsageController::class, 'details'])->name('api.earth-data.details');
     // 匯出指定工程的使用明細（xlsx）
@@ -130,4 +132,13 @@ Route::middleware('auth:api')->group(function () {
     Route::get('common/customers', [CommonController::class, 'getCustomerList'])->name('api.common.customers');
     Route::get('common/earth-data/datalist', [CommonController::class, 'getEarthDataDatalist'])->name('api.common.earth-data.datalist');
     Route::get('common/earth-data-detail/status-list', [CommonController::class, 'getEarthDataDetailStatusList'])->name('api.common.earth-data-detail.status-list');
+    Route::get('/soil-types', [CommonController::class, 'soilTypes'])->name('api.common.soil-types');
+
+    // 通用 API
+    Route::prefix('common')->name('api.common.')->group(function () {
+        Route::get('/customers', [\App\Http\Controllers\CommonController::class, 'customers'])->name('customers');
+        Route::get('/cleaners', [\App\Http\Controllers\CommonController::class, 'cleaners'])->name('cleaners');
+        Route::get('/soil-types', [\App\Http\Controllers\CommonController::class, 'soilTypes'])->name('soil-types');
+        Route::get('/meter-types', [\App\Http\Controllers\CommonController::class, 'meterTypes'])->name('meter-types');
+    });
 });

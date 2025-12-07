@@ -28,6 +28,11 @@ class EarthData extends Model
         'updated_by',
         'sys_serial_no',
         'status',
+        'closure_status',
+        'closed_at',
+        'closed_by',
+        'closure_certificate_path',
+        'closure_remark',
     ];
 
     const ATTRIBUTES = [
@@ -41,7 +46,7 @@ class EarthData extends Model
         'cleaner_id'      => null,
         'project_name'    => '',
         'flow_control_no' => '',
-        'carry_qty'       => 0,
+        'carry_qty'     => 0,
         'carry_soil_type' => '',
         'status_desc'     => '',
         'remark_desc'     => '',
@@ -49,6 +54,11 @@ class EarthData extends Model
         'updated_by'      => '',
         'sys_serial_no'   => '',
         'status'          => 'active',
+        'closure_status'  => 'open',
+        'closed_at'       => null,
+        'closed_by'       => null,
+        'closure_certificate_path' => null,
+        'closure_remark'  => '',
     ];
 
     const CASTS = [
@@ -59,11 +69,19 @@ class EarthData extends Model
         'customer_id'     => 'integer',
         'issue_count'     => 'integer',
         'deleted_at'      => 'datetime',
+        'closed_at'       => 'datetime',
     ];
 
     protected $fillable   = self::FILLABLE;
     protected $attributes = self::ATTRIBUTES;
-    protected $casts      = self::CASTS;
+    protected $casts      = [
+        'valid_date_from' => 'date',
+        'valid_date_to' => 'date',
+        'issue_date' => 'date',
+        'carry_qty' => 'decimal:2',
+        'carry_soil_type' => 'array', // 新增：將 JSON 自動轉為陣列
+        'closed_at' => 'datetime',
+    ];
 
     /**
      * 多對多關聯：清運業者

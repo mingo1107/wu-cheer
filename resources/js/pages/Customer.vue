@@ -225,7 +225,7 @@
               <i class="fas fa-times text-xl"></i>
             </button>
           </div>
-          
+
           <form @submit.prevent="submitForm" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -239,7 +239,7 @@
                 />
                 <p v-if="errors.customer_name" class="text-red-500 text-xs mt-1">{{ errors.customer_name }}</p>
               </div>
-              
+
               <div>
                 <label class="label-base">聯絡人 *</label>
                 <input
@@ -251,7 +251,7 @@
                 />
                 <p v-if="errors.contact_person" class="text-red-500 text-xs mt-1">{{ errors.contact_person }}</p>
               </div>
-              
+
               <div>
                 <label class="label-base">電話</label>
                 <input
@@ -262,7 +262,7 @@
                 />
                 <p v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</p>
               </div>
-              
+
               <div>
                 <label class="label-base">電子郵件</label>
                 <input
@@ -273,7 +273,7 @@
                 />
                 <p v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</p>
               </div>
-              
+
               <div>
                 <label class="label-base">統一編號</label>
                 <input
@@ -285,7 +285,7 @@
                 />
                 <p v-if="errors.tax_id" class="text-red-500 text-xs mt-1">{{ errors.tax_id }}</p>
               </div>
-              
+
               <div>
                 <label class="label-base">狀態</label>
                 <select
@@ -299,7 +299,7 @@
                 <p v-if="errors.status" class="text-red-500 text-xs mt-1">{{ errors.status }}</p>
               </div>
             </div>
-            
+
             <div>
               <label class="label-base">地址</label>
               <textarea
@@ -310,7 +310,7 @@
               ></textarea>
               <p v-if="errors.address" class="text-red-500 text-xs mt-1">{{ errors.address }}</p>
             </div>
-            
+
             <div>
               <label class="label-base">備註</label>
               <textarea
@@ -382,6 +382,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from '@/composables/useToast'
+import { usePagination } from '@/composables/usePagination'
 import customerAPI from '../api/customer.js'
 
 const { showToast } = useToast()
@@ -427,44 +428,8 @@ const debouncedSearch = () => {
   }, 500)
 }
 
-// 計算屬性
-const visiblePages = computed(() => {
-  if (!pagination.value) return []
-  
-  const current = pagination.value.current_page
-  const last = pagination.value.last_page
-  const pages = []
-  
-  if (last <= 7) {
-    for (let i = 1; i <= last; i++) {
-      pages.push(i)
-    }
-  } else {
-    if (current <= 4) {
-      for (let i = 1; i <= 5; i++) {
-        pages.push(i)
-      }
-      pages.push('...')
-      pages.push(last)
-    } else if (current >= last - 3) {
-      pages.push(1)
-      pages.push('...')
-      for (let i = last - 4; i <= last; i++) {
-        pages.push(i)
-      }
-    } else {
-      pages.push(1)
-      pages.push('...')
-      for (let i = current - 1; i <= current + 1; i++) {
-        pages.push(i)
-      }
-      pages.push('...')
-      pages.push(last)
-    }
-  }
-  
-  return pages
-})
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, loadCustomers)
 
 // 方法
 const loadCustomers = async (page = 1) => {
@@ -497,12 +462,6 @@ const loadCustomers = async (page = 1) => {
     showToast(error.message || '載入客戶資料失敗', 'error')
   } finally {
     loading.value = false
-  }
-}
-
-const goToPage = (page) => {
-  if (page >= 1 && page <= pagination.value.last_page) {
-    loadCustomers(page)
   }
 }
 

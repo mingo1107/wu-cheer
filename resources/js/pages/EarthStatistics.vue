@@ -38,6 +38,31 @@
           </div>
         </div>
 
+        <!-- 日期篩選區（選擇工程後才顯示） -->
+        <div v-if="selected" class="flex flex-col md:flex-row items-stretch md:items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">使用起始日期</label>
+            <input
+              v-model="dateFrom"
+              type="date"
+              @change="loadStats"
+              class="px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">使用結束日期</label>
+            <input
+              v-model="dateTo"
+              type="date"
+              @change="loadStats"
+              class="px-3 py-2 border rounded-md"
+            />
+          </div>
+          <button @click="loadStats" class="md:mt-5 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            更新統計
+          </button>
+        </div>
+
         <!-- 統計圖表區 -->
         <div v-if="!selected" class="text-gray-500">請先選擇工程</div>
         <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -110,6 +135,14 @@ const selected = ref(null)
 const totals = ref({ total: 0, verified: 0, pending: 0 })
 const daily = ref([])
 
+// 日期篩選（預設為今日）
+const getTodayString = () => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+}
+const dateFrom = ref(getTodayString())
+const dateTo = ref(getTodayString())
+
 let datalistTimer = null
 const debouncedLoadDatalist = () => {
   clearTimeout(datalistTimer)
@@ -134,11 +167,28 @@ const loadSelectedEarth = async () => {
   const info = await earthDataAPI.get(id)
   if (info.status) {
     selected.value = info.data
-    const s = await earthDataAPI.usageStats(id)
+    // 重置日期為今日
+    dateFrom.value = getTodayString()
+    dateTo.value = getTodayString()
+    await loadStats()
+  }
+}
+
+// 載入統計資料（依據日期篩選）
+const loadStats = async () => {
+  if (!selected.value?.id) return
+  try {
+    const params = {
+      date_from: dateFrom.value,
+      date_to: dateTo.value
+    }
+    const s = await earthDataAPI.usageStats(selected.value.id, params)
     if (s.status) {
       totals.value = s.data?.totals || { total: 0, verified: 0, pending: 0 }
       daily.value = Array.isArray(s.data?.daily) ? s.data.daily : []
     }
+  } catch (e) {
+    console.error('載入統計失敗:', e)
   }
 }
 

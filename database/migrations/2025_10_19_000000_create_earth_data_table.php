@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('customer_code')->nullable()->comment('客戶代號');
             $table->date('valid_date_from')->nullable()->comment('有效期限（起）');
             $table->date('valid_date_to')->nullable()->comment('有效期限（迄）');
-            $table->decimal('carry_qty', 12, 2)->default(0)->comment('載運數量');
+            $table->decimal('carry_qty', 12, 2)->default(0)->comment('載運米數');
             $table->string('carry_soil_type')->nullable()->comment('載運土質');
             $table->string('status_desc')->nullable()->comment('狀態說明');
             $table->text('remark_desc')->nullable()->comment('備註說明');

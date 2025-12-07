@@ -109,4 +109,18 @@ class CleanerRepository extends BaseRepository
 
         return $query->count();
     }
+
+    /**
+     * 取得啟用的清運業者列表（用於下拉選單）
+     */
+    public function getActiveList(int $companyId): array
+    {
+        return $this->model
+            ->where('company_id', $companyId)
+            ->where('status', 'active')
+            ->select('id', 'cleaner_name as name')
+            ->orderBy('cleaner_name')
+            ->get()
+            ->toArray();
+    }
 }
