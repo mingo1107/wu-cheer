@@ -255,8 +255,13 @@ class EarthDataDetailRepository extends BaseRepository
         $total    = (clone $base)->count();
         $printed  = (clone $base)->whereNotNull('print_at')->count();
         $pending  = max(0, $total - $printed);
+
+        // 計算總米數：將所有 meter_type 加總
+        $totalMeters = (clone $base)->sum('meter_type');
+
         return [
             'total'    => (int) $total,
+            'total_meters' => (int) $totalMeters, // 新增總米數
             // 與前端相容：維持 verified 鍵名，但數值代表「已印數量」
             'verified' => (int) $printed,
             'pending'  => (int) $pending,

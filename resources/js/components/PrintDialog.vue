@@ -14,7 +14,8 @@
           讀取統計中...
         </div>
         <div v-else class="text-sm text-gray-700 space-y-1">
-          <div>總張數：<span class="font-semibold">{{ totals?.total ?? 0 }}</span></div>
+          <div>總張數：<span class="font-semibold">{{ totals?.total ?? 0 }} 張</span></div>
+          <div>總米數：<span class="font-semibold">{{ totals?.total_meters ?? 0 }} 米</span></div>
           <div>已印數量：<span class="font-semibold">{{ totals?.verified ?? 0 }}</span></div>
           <div>未印數量：<span class="font-semibold">{{ pending }}</span></div>
         </div>
@@ -45,7 +46,7 @@ import { computed, watch, ref } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
-  totals: { type: Object, default: () => ({ total: 0, verified: 0, pending: 0 }) },
+  totals: { type: Object, default: () => ({ total: 0, total_meters: 0, verified: 0, pending: 0 }) },
   loading: { type: Boolean, default: false },
   count: { type: Number, default: 1 },
 })

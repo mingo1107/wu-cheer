@@ -369,7 +369,8 @@
             </div>
             <template v-else>
               <div class="flex justify-between gap-4">
-                <span>總米數：<span class="font-semibold">{{ adjustTotals?.total ?? 0 }} 米</span></span>
+                <span>總張數：<span class="font-semibold">{{ adjustTotals?.total ?? 0 }} 張</span></span>
+                <span>總米數：<span class="font-semibold">{{ adjustTotals?.total_meters ?? 0 }} 米</span></span>
                 <span>已印：<span class="font-semibold">{{ adjustTotals?.verified ?? 0 }}</span></span>
                 <span>未印：<span class="font-semibold">{{ adjustTotals?.pending ?? 0 }}</span></span>
               </div>
@@ -545,7 +546,7 @@ const certificateInput = ref(null)
 const showPrintModal = ref(false)
 const printTarget = ref(null)
 const printCount = ref(1)
-const printTotals = ref({ total: 0, verified: 0, pending: 0 })
+const printTotals = ref({ total: 0, total_meters: 0, verified: 0, pending: 0 })
 const loadingPrintTotals = ref(false)
 
 // adjust count modal state
@@ -556,7 +557,7 @@ const adjustUseStartDate = ref('')
 const adjustUseEndDate = ref('')
 const adjustByMeters = reactive({})
 const submittingAdjust = ref(false)
-const adjustTotals = ref({ total: 0, verified: 0, pending: 0 })
+const adjustTotals = ref({ total: 0, total_meters: 0, verified: 0, pending: 0 })
 const loadingAdjustTotals = ref(false)
 
 // 計算總米數
@@ -895,16 +896,19 @@ const openAdjustModal = async (item) => {
   meterTypeOptions.value.forEach(meterType => {
     adjustByMeters[meterType.field] = 0
   })
-  adjustTotals.value = { total: 0, verified: 0, pending: 0 }
+  adjustTotals.value = { total: 0, total_meters: 0, verified: 0, pending: 0 }
   showAdjustModal.value = true
   loadingAdjustTotals.value = true
   try {
     const resp = await earthDataAPI.usageStats(item.id)
+    console.log('調整對話框統計 API 回應:', resp)
     if (resp.status) {
-      adjustTotals.value = resp.data?.totals || { total: 0, verified: 0, pending: 0 }
+      console.log('統計資料:', resp.data?.totals)
+      adjustTotals.value = resp.data?.totals || { total: 0, total_meters: 0, verified: 0, pending: 0 }
+      console.log('adjustTotals.value 設定為:', adjustTotals.value)
     }
   } catch (e) {
-    // ignore; keep zeros
+    console.error('載入統計失敗:', e)
   } finally {
     loadingAdjustTotals.value = false
   }
@@ -973,23 +977,28 @@ const openPrint = async (item) => {
   if (!item || !item.id) return
   printTarget.value = item
   printCount.value = 1
-  printTotals.value = { total: 0, verified: 0, pending: 0 }
+  printTotals.value = { total: 0, total_meters: 0, verified: 0, pending: 0 }
   showPrintModal.value = true
   loadingPrintTotals.value = true
   try {
     const resp = await earthDataAPI.usageStats(item.id)
+    console.log('列印對話框統計 API 回應:', resp)
     if (resp.status) {
       const totals = resp.data?.totals || {}
+      console.log('統計資料:', totals)
       const t = Number(totals.total ?? 0)
+      const tm = Number(totals.total_meters ?? 0)
       const v = Number(totals.verified ?? 0)
       const p = Math.max(0, t - v)
-      printTotals.value = { total: t, verified: v, pending: p }
+      printTotals.value = { total: t, total_meters: tm, verified: v, pending: p }
+      console.log('printTotals.value 設定為:', printTotals.value)
       // clamp default
       if (printCount.value > p) printCount.value = p || 1
     } else {
       showToast(resp.message || '取得統計失敗', 'error')
     }
   } catch (e) {
+    console.error('載入統計失敗:', e)
     showToast(e.message || '取得統計失敗', 'error')
   } finally {
     loadingPrintTotals.value = false
