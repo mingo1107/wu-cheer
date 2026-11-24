@@ -3,47 +3,17 @@
     "file": "assets/Customer-e3b0c442.css",
     "src": "PrintDialog.css"
   },
-  "_PrintDialog-05d6a342.js": {
+  "_PrintDialog-0bdaf0b3.js": {
     "css": [
       "assets/Customer-e3b0c442.css"
     ],
-    "file": "assets/PrintDialog-05d6a342.js",
+    "file": "assets/PrintDialog-0bdaf0b3.js",
     "imports": [
       "resources/js/app.js"
     ]
   },
-  "_PrintDialog-6122d9df.js": {
-    "css": [
-      "assets/Customer-e3b0c442.css"
-    ],
-    "file": "assets/PrintDialog-6122d9df.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_PrintDialog-94eb77d9.js": {
-    "css": [
-      "assets/Customer-e3b0c442.css"
-    ],
-    "file": "assets/PrintDialog-94eb77d9.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_common-1e7211b4.js": {
-    "file": "assets/common-1e7211b4.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_common-43aca42a.js": {
-    "file": "assets/common-43aca42a.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_common-e7838c46.js": {
-    "file": "assets/common-e7838c46.js",
+  "_common-265b85d1.js": {
+    "file": "assets/common-265b85d1.js",
     "imports": [
       "resources/js/app.js"
     ]
@@ -51,38 +21,14 @@
   "_date-69680232.js": {
     "file": "assets/date-69680232.js"
   },
-  "_useAuth-76d9552d.js": {
-    "file": "assets/useAuth-76d9552d.js",
+  "_useAuth-21d606cf.js": {
+    "file": "assets/useAuth-21d606cf.js",
     "imports": [
       "resources/js/app.js"
     ]
   },
-  "_useAuth-a6f3c790.js": {
-    "file": "assets/useAuth-a6f3c790.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_useAuth-de97707b.js": {
-    "file": "assets/useAuth-de97707b.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_usePagination-22cbe88a.js": {
-    "file": "assets/usePagination-22cbe88a.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_usePagination-84c0f2c1.js": {
-    "file": "assets/usePagination-84c0f2c1.js",
-    "imports": [
-      "resources/js/app.js"
-    ]
-  },
-  "_usePagination-ead0e5f6.js": {
-    "file": "assets/usePagination-ead0e5f6.js",
+  "_usePagination-c01cdb39.js": {
+    "file": "assets/usePagination-c01cdb39.js",
     "imports": [
       "resources/js/app.js"
     ]
@@ -116,7 +62,7 @@
       "resources/js/pages/verifierPlatform/Dashboard.vue",
       "resources/js/pages/NotFound.vue"
     ],
-    "file": "assets/app-86615f25.js",
+    "file": "assets/app-27300bfd.js",
     "isEntry": true,
     "src": "resources/js/app.js"
   },
@@ -128,7 +74,7 @@
     "css": [
       "assets/Customer-e3b0c442.css"
     ],
-    "file": "assets/Announcement-de208cf8.js",
+    "file": "assets/Announcement-eb1f7da9.js",
     "imports": [
       "resources/js/app.js"
     ],
@@ -143,10 +89,10 @@
     "css": [
       "assets/Customer-e3b0c442.css"
     ],
-    "file": "assets/Cleaner-c28cc151.js",
+    "file": "assets/Cleaner-a84875d9.js",
     "imports": [
       "resources/js/app.js",
-      "_usePagination-22cbe88a.js"
+      "_usePagination-c01cdb39.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/Cleaner.vue"
@@ -159,16 +105,16 @@
     "css": [
       "assets/Customer-e3b0c442.css"
     ],
-    "file": "assets/Customer-feb8e151.js",
+    "file": "assets/Customer-289ccf02.js",
     "imports": [
       "resources/js/app.js",
-      "_usePagination-22cbe88a.js"
+      "_usePagination-c01cdb39.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/Customer.vue"
   },
   "resources/js/pages/Dashboard.vue": {
-    "file": "assets/Dashboard-fb196b60.js",
+    "file": "assets/Dashboard-b5436e7e.js",
     "imports": [
       "resources/js/app.js",
       "_date-69680232.js"
@@ -184,38 +130,38 @@
     "css": [
       "assets/EarthData-4c8ef692.css"
     ],
-    "file": "assets/EarthData-a9594c8c.js",
+    "file": "assets/EarthData-ec8d7a0f.js",
     "imports": [
       "resources/js/app.js",
-      "_PrintDialog-6122d9df.js",
-      "_usePagination-22cbe88a.js",
-      "_common-e7838c46.js"
+      "_PrintDialog-0bdaf0b3.js",
+      "_usePagination-c01cdb39.js",
+      "_common-265b85d1.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/EarthData.vue"
   },
   "resources/js/pages/EarthStatistics.vue": {
-    "file": "assets/EarthStatistics-249cfeff.js",
+    "file": "assets/EarthStatistics-be7939cb.js",
     "imports": [
       "resources/js/app.js",
-      "_common-e7838c46.js"
+      "_common-265b85d1.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/EarthStatistics.vue"
   },
   "resources/js/pages/EarthUsage.vue": {
-    "file": "assets/EarthUsage-6ec0519a.js",
+    "file": "assets/EarthUsage-ae8b544e.js",
     "imports": [
       "resources/js/app.js",
-      "_common-e7838c46.js",
-      "_PrintDialog-6122d9df.js",
+      "_common-265b85d1.js",
+      "_PrintDialog-0bdaf0b3.js",
       "_date-69680232.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/EarthUsage.vue"
   },
   "resources/js/pages/NotFound.vue": {
-    "file": "assets/NotFound-e5eb89f0.js",
+    "file": "assets/NotFound-da4947ef.js",
     "imports": [
       "resources/js/app.js"
     ],
@@ -223,7 +169,7 @@
     "src": "resources/js/pages/NotFound.vue"
   },
   "resources/js/pages/Profile.vue": {
-    "file": "assets/Profile-afb653ba.js",
+    "file": "assets/Profile-b1d76b49.js",
     "imports": [
       "resources/js/app.js"
     ],
@@ -231,25 +177,25 @@
     "src": "resources/js/pages/Profile.vue"
   },
   "resources/js/pages/User.vue": {
-    "file": "assets/User-10a0e190.js",
+    "file": "assets/User-b6913471.js",
     "imports": [
       "resources/js/app.js",
-      "_usePagination-22cbe88a.js"
+      "_usePagination-c01cdb39.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/User.vue"
   },
   "resources/js/pages/UserLog.vue": {
-    "file": "assets/UserLog-68854308.js",
+    "file": "assets/UserLog-d1bed068.js",
     "imports": [
       "resources/js/app.js",
-      "_usePagination-22cbe88a.js"
+      "_usePagination-c01cdb39.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/UserLog.vue"
   },
   "resources/js/pages/Verifier.vue": {
-    "file": "assets/Verifier-b8e0e388.js",
+    "file": "assets/Verifier-a9696b08.js",
     "imports": [
       "resources/js/app.js"
     ],
@@ -264,20 +210,20 @@
     "css": [
       "assets/Dashboard-ebba83c6.css"
     ],
-    "file": "assets/Dashboard-02ee4586.js",
+    "file": "assets/Dashboard-02d088cc.js",
     "imports": [
       "resources/js/app.js",
-      "_useAuth-76d9552d.js",
+      "_useAuth-21d606cf.js",
       "_date-69680232.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/verifierPlatform/Dashboard.vue"
   },
   "resources/js/pages/verifierPlatform/Login.vue": {
-    "file": "assets/Login-53b6f058.js",
+    "file": "assets/Login-1b59e44a.js",
     "imports": [
       "resources/js/app.js",
-      "_useAuth-76d9552d.js"
+      "_useAuth-21d606cf.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/pages/verifierPlatform/Login.vue"
