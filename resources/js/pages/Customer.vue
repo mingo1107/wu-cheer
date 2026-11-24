@@ -428,9 +428,6 @@ const debouncedSearch = () => {
   }, 500)
 }
 
-// 使用共用的分頁邏輯
-const { visiblePages, goToPage } = usePagination(pagination, loadCustomers)
-
 // 方法
 const loadCustomers = async (page = 1) => {
   try {
@@ -464,6 +461,9 @@ const loadCustomers = async (page = 1) => {
     loading.value = false
   }
 }
+
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, loadCustomers)
 
 const openCreateModal = () => {
   isEditing.value = false

@@ -428,9 +428,6 @@ const debouncedSearch = () => {
   }, 500);
 };
 
-// 使用共用的分頁邏輯
-const { visiblePages, goToPage } = usePagination(pagination, loadUsers)
-
 // 修改 loadUsers 以支援分頁
 const loadUsers = async (page = 1) => {
   isLoading.value = true;
@@ -482,6 +479,9 @@ const loadUsers = async (page = 1) => {
     isLoading.value = false;
   }
 };
+
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, loadUsers)
 
 const openCreateModal = async () => {
   isEditing.value = false;

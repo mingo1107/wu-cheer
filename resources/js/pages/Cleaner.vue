@@ -423,9 +423,6 @@ const vehicleForm = reactive({
   notes: ''
 })
 
-// 使用共用的分頁邏輯
-const { visiblePages, goToPage } = usePagination(pagination, load)
-
 let searchTimeout = null
 const debouncedSearch = () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => load(), 500) }
 
@@ -453,6 +450,9 @@ const load = async (page = 1) => {
     loading.value = false
   }
 }
+
+// 使用共用的分頁邏輯
+const { visiblePages, goToPage } = usePagination(pagination, load)
 
 const openCreate = () => { isEditing.value = false; resetForm(); showModal.value = true }
 const openEdit = (it) => {
