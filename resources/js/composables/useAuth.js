@@ -110,7 +110,8 @@ export function useAuth() {
             const response = await userAPI.getCurrentUser();
             
             if (response.status) {
-                user.value = response.data.user;
+                user.value = response.data;
+                localStorage.setItem('user', JSON.stringify(user.value));
                 return { success: true, data: response.data };
             } else {
                 error.value = response.message;

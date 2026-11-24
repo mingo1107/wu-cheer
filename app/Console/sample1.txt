@@ -1,0 +1,22 @@
+php artisan elec:calculate-bill \
+    --type=ehv \
+    --month=9 \
+    --c_normal=950 \
+    --d_normal=1131 \
+    --c_half=0 \
+    --d_half=1223 \
+    --c_sat=0 \
+    --d_sat=921 \
+    --c_off=0 \
+    --d_off=1041 \
+    --kwh_peak=98316 \
+    --kwh_half=168056 \
+    --kwh_sat=49032 \
+    --kwh_off=199760 \
+    --pf=98 \
+    --pf_base=80 \
+    --adj_factor=0.938 \
+    --rate_peak= \
+    --rate_half= \
+    --rate_sat= \
+    --rate_off=
